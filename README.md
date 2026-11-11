@@ -10,7 +10,9 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 | العروض | `/offers/` |
 | المنتجات والبحث | `/shop.html` و `/shop.html?q=...` |
 | منتج | `/product-<slug>.html` |
-| سلة، دفع، تتبع، حساب، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `account.html` `auth.html` `admin.html` |
+| سلة، دفع، تتبع، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `auth.html` `admin.html` |
+| البروفايل | `/profile` ، `/profile/my-orders` ، `/profile/my-reviews` |
+| مساعدة، خصوصية، سياسات، انضم إلينا، عروضك | `/help` ، `/privacy` ، `/policy` ، `/join-us` ، `/yours-offer` |
 
 الروابط كلها تبدأ بـ `/` فلازم الموقع يتفتح من جذر الدومين (Vercel/Netlify)، وليس بفتح الملف مباشرة. قواعد إعادة التوجيه موجودة في `vercel.json` و `_redirects`.
 
@@ -46,3 +48,12 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
     insert into public.kt_admins(email) values ('your-email@example.com');
 
 العروض = أي منتج له "سعر قبل الخصم" أكبر من السعر؛ يظهر تلقائيًا في `/offers/`.
+
+## التقييمات الحقيقية
+جدول `kt_product_reviews` (تقييم واحد لكل حساب لكل منتج). الإضافة والتعديل عبر الدالة `kt_save_review` ولا تقبل إلا من حساب عنده طلب بحالة `delivered` فيه المنتج. متوسط التقييم وعدد التقييمات في `kt_products` يتحدثان تلقائيًا بـ trigger. لازم تغيّر حالة الطلب إلى `delivered` من لوحة التحكم عشان العميل يقدر يقيّم.
+
+## التتبع التلقائي
+من `/profile/my-orders` زر "تتبّع الطلب" يفتح `/track.html?no=...` ويعرض الطلب بدون كتابة. الزائر بدون حساب: آخر طلب من نفس الجهاز يظهر تلقائيًا.
+
+## الاشتراك في العروض
+آخر الصفحة الرئيسية، يحفظ في `kt_subscribers`. طلبات `/join-us` تتحفظ في `kt_messages` بعلامة [طلب انضمام].

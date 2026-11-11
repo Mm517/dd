@@ -11,6 +11,42 @@
     {
       "source": "/offers",
       "destination": "/offers/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/policy",
+      "destination": "/policy/index.html"
+    },
+    {
+      "source": "/join-us",
+      "destination": "/join-us/index.html"
+    },
+    {
+      "source": "/help",
+      "destination": "/help/index.html"
+    },
+    {
+      "source": "/yours-offer",
+      "destination": "/yours-offer/index.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/profile/index.html"
+    },
+    {
+      "source": "/profile/my-orders",
+      "destination": "/profile/my-orders/index.html"
+    },
+    {
+      "source": "/profile/my-reviews",
+      "destination": "/profile/my-reviews/index.html"
+    },
+    {
+      "source": "/track",
+      "destination": "/track.html"
     }
   ],
   "headers": [
@@ -22,6 +58,23 @@
           "value": "public, max-age=604800"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/Yours-offer",
+      "destination": "/yours-offer",
+      "permanent": true
+    },
+    {
+      "source": "/account.html",
+      "destination": "/profile",
+      "permanent": true
+    },
+    {
+      "source": "/policies.html",
+      "destination": "/policy",
+      "permanent": true
     }
   ]
 }

@@ -7,7 +7,7 @@ window.KT = {
   shippingFee: 40,                   // لازم يطابق kt_place_order في قاعدة البيانات
   freeShipFrom: 500,
   /* البانر الإعلاني في الرئيسية: الصورة + الصفحة اللي يفتحها */
-  banner: { image: '/assets/img/promo-sale.jpg', href: '/offers/', alt: 'خصم حتى 50% على مستلزمات التنظيف - اكتشف العروض' },
+  banner: { image: '/assets/img/promo-sale.jpg', wide: '/assets/img/promo-sale-wide.jpg', href: '/offers/', alt: 'خصم حتى 50% على مستلزمات التنظيف - اكتشف العروض' },
   /* البحث الذكي (Supabase Edge Function ai-search + Gemini) */
   aiSearch: true,
   /* الدفع: اربطهم لاحقًا من هنا */

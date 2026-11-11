@@ -8,7 +8,7 @@ const AUTH_ERR = {
   'Signups not allowed for otp': 'لا يوجد حساب بهذا البريد، أنشئ حسابًا جديدًا', 'Email rate limit exceeded': 'تم إرسال رسائل كثيرة، انتظر دقيقة ثم حاول'
 };
 const errMsg = e => AUTH_ERR[e?.message] || (/rate limit|seconds/i.test(e?.message || '') ? AUTH_ERR['Email rate limit exceeded'] : 'تعذر إتمام العملية، حاول مرة أخرى');
-const safeNext = () => { const n = params.get('next') || '/account.html'; return /^\/[a-z0-9._\-/]*(\?[^#]*)?$/i.test(n) && !n.startsWith('//') ? n : '/account.html'; };
+const safeNext = () => { const n = params.get('next') || '/profile'; return /^\/[a-z0-9._\-/]*(\?[^#]*)?$/i.test(n) && !n.startsWith('//') ? n : '/profile'; };
 const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 pages.auth = async () => {
@@ -82,15 +82,6 @@ pages.auth = async () => {
   draw();
 };
 
-pages.account = async () => {
-  if (!(await requireLogin())) return;
-  const u = window.KTApp.session.user, app = $('#app');
-  app.innerHTML = `<div class="wrap page"><div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center"><div><h1>حسابي</h1><p class="page__sub">${esc(u.user_metadata?.name || '')} <span dir="ltr">${esc(u.email)}</span></p></div>
-  <div style="display:flex;gap:8px"><a id="adm" href="/admin.html" hidden class="btn btn-sun btn-sm">لوحة التحكم</a><button id="out" class="btn btn-ghost btn-sm">تسجيل الخروج</button></div></div>
-  <h2 class="subhead">طلباتي</h2><div id="ords" style="display:grid;gap:14px"><div class="skel" style="height:120px"></div></div></div>`;
-  $('#out').onclick = async () => { await sb.auth.signOut(); location.href = '/'; };
-  sb.rpc('kt_is_admin').then(({ data }) => { if (data === true) $('#adm').hidden = false; });
-  const { data, error } = await sb.from('kt_orders').select('*').order('created_at', { ascending: false });
-  $('#ords').innerHTML = error ? errorBox() : data.length ? data.map(window.KTApp.orderCard).join('') : emptyBox('لا توجد طلبات على هذا الحساب بعد.');
-};
+/* صفحة الحساب القديمة: نحوّلها للبروفايل الجديد (/profile) */
+pages.account = () => { location.replace('/profile'); };
 })();

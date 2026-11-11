@@ -35,6 +35,13 @@ const ICONS = {
   chevL: '<path d="m15 6-6 6 6 6"/>',
   sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16v4M17 18h4"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  star: '<path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.6 2.4c-.7.4-1.1.9-1.1 1.7"/><path d="M12 17h.01"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  logout: '<path d="M10 4H5v16h5"/><path d="M15 8l4 4-4 4M19 12H9"/>',
+  gift: '<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M12 9v11M3 13h18"/><path d="M12 9C10 5 6 5 7 8c.5 1.5 3 1 5 1zm0 0c2-4 6-4 5-1-.5 1.5-3 1-5 1z"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
   /* أيقونات الأقسام */
   'cleaning-tools': '<path d="M14 3l4 4"/><path d="M16 5 8.5 12.5"/><path d="M5 15c1.5-1 3-1 4.5 0l-2 6H4z"/><path d="M9.5 15l1.5 6M13 12.5l.5 8.5M17 14l-1.5 7"/>',
   sponges: '<rect x="3" y="9" width="18" height="8" rx="2"/><path d="M3 13h18"/><circle cx="8" cy="15" r=".7" fill="currentColor"/><circle cx="12" cy="15" r=".7" fill="currentColor"/><circle cx="16" cy="15" r=".7" fill="currentColor"/><path d="M6 6.5c1-1.5 2-1.5 3 0M12 5c1-1.5 2-1.5 3 0"/>',
@@ -53,7 +60,7 @@ const stars = r => { const n = Math.round(r); return `<span class="stars" aria-l
 const TAGS = {
   home: '#متجر_أدوات_المطبخ_والتنظيف', shop: '#كل_منتجات_المطبخ', category: '#تسوق_حسب_القسم', offers: '#عروض_وخصومات_المطبخ',
   product: '#تفاصيل_المنتج', cart: '#سلة_التسوق', checkout: '#إتمام_الطلب_والدفع', success: '#تم_استلام_طلبك', track: '#تتبع_طلبك',
-  auth: '#تسجيل_الدخول_والحساب', account: '#حسابي_وطلباتي', admin: '#لوحة_تحكم_المتجر', policies: '#سياسات_المتجر', contact: '#تواصل_معنا', notfound: '#الصفحة_غير_موجودة'
+  auth: '#تسجيل_الدخول_والحساب', account: '#حسابي_وطلباتي', profile: '#حسابي', myorders: '#طلباتي', myreviews: '#تقييماتي', help: '#مركز_المساعدة', privacy: '#سياسة_الخصوصية', policy: '#سياسات_المتجر', join: '#انضم_إلينا', yours: '#عروضك_أنت', admin: '#لوحة_تحكم_المتجر', policies: '#سياسات_المتجر', contact: '#تواصل_معنا', notfound: '#الصفحة_غير_موجودة'
 };
 function setHashtag(tag) { const el = $('#page-tag'); if (el) el.textContent = tag; }
 
@@ -168,7 +175,7 @@ const discount = p => (p.old_price > p.price ? Math.round((1 - p.price / p.old_p
 function card(p) {
   const d = discount(p), out = p.stock < 1, low = !out && p.stock <= 10, save = d ? Math.round(p.old_price - p.price) : 0;
   return `<article class="pcard"><a href="${purl(p)}" class="pcard__img"><img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">${d ? `<span class="pcard__off">-${d}%</span>` : ''}${p.badge ? `<span class="pcard__badge">${esc(p.badge)}</span>` : ''}</a>
-  <div class="pcard__body"><a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a><div class="stars">${stars(p.rating)}<span>(${p.reviews_count})</span></div>
+  <div class="pcard__body"><a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a>${p.reviews_count > 0 ? `<div class="stars">${stars(p.rating)}<span>(${p.reviews_count})</span></div>` : '<div class="stars"><span class="newtag">لا تقييمات بعد</span></div>'}
   <div class="price"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>${save ? `<p class="pcard__save">وفّر ${fmt(save)} جنيه</p>` : ''}${low ? `<p class="pcard__low">متبقي ${p.stock} قطع فقط</p>` : ''}
   <button class="btn btn-primary btn-block" data-add="${esc(p.slug)}" ${out ? 'disabled' : ''}>${out ? 'غير متوفر' : 'أضف للسلة'}</button></div></article>`;
 }
@@ -196,9 +203,9 @@ function renderHeader() {
       <button class="sbox__go" aria-label="بحث">${ic('search')}</button></form><div class="sug" id="sug" hidden></div></div>
     <div class="hdr__act">
       <a href="/track.html" class="hdr__link" aria-label="تتبع طلبك">${ic('box')}<span>تتبع طلبك</span></a>
-      <a href="${SESSION ? '/account.html' : '/auth.html'}" class="hdr__link" aria-label="${SESSION ? 'حسابي' : 'تسجيل الدخول'}">${ic('user')}<span>${SESSION ? 'حسابي' : 'دخول'}</span></a>
+      <a href="${SESSION ? '/profile' : '/auth.html'}" class="hdr__link" aria-label="${SESSION ? 'حسابي' : 'تسجيل الدخول'}">${ic('user')}<span>${SESSION ? 'حسابي' : 'دخول'}</span></a>
       <a href="/cart.html" class="hdr__link" aria-label="السلة">${ic('cart')}<span>السلة</span><b class="badge" data-cart-count hidden>0</b></a></div></div>
-    <nav class="catnav" aria-label="الأقسام"><div class="catnav__in wrap"><a href="/offers/" class="deal" ${page === 'offers' ? 'aria-current="true"' : ''}>العروض</a><a href="/shop.html" ${page === 'shop' ? 'aria-current="true"' : ''}>كل المنتجات</a><span id="catnav-list" style="display:contents"></span></div></nav>
+    <nav class="catnav" aria-label="الأقسام"><div class="catnav__in wrap"><a href="/offers/" class="deal" ${page === 'offers' ? 'aria-current="true"' : ''}>العروض</a><a href="/yours-offer" class="mine" ${page === 'yours' ? 'aria-current="true"' : ''}>عروضك</a><a href="/shop.html" ${page === 'shop' ? 'aria-current="true"' : ''}>كل المنتجات</a><span id="catnav-list" style="display:contents"></span></div></nav>
   </header>
   <div class="hashtag-bar"><div class="wrap"><span>في هذه الصفحة:</span><span class="hashtag" id="page-tag">${esc(TAGS[page] || '')}</span></div></div>`;
   const cur = location.pathname.match(/^\/category\/([^/]+)/)?.[1];
@@ -246,13 +253,13 @@ function renderTabbar(page) {
   document.body.classList.add('has-tabbar');
   const t = (href, icon, label, on, attrs = '') => `<${href ? `a href="${href}"` : 'button type="button"'} class="tabbar__item ${on ? 'is-on' : ''}" ${attrs}>${ic(icon, 'ico-lg')}${icon === 'cart' ? '<b class="badge" data-cart-count hidden>0</b>' : ''}<span>${label}</span></${href ? 'a' : 'button'}>`;
   const el = document.createElement('nav'); el.className = 'tabbar'; el.setAttribute('aria-label', 'التنقل');
-  el.innerHTML = t('/', 'home', 'الرئيسية', page === 'home') + t('', 'grid', 'الأقسام', page === 'category', 'data-open-cats') + t('/offers/', 'offers', 'العروض', page === 'offers') + t('/cart.html', 'cart', 'السلة', page === 'cart') + t(SESSION ? '/account.html' : '/auth.html', 'user', 'حسابي', page === 'account' || page === 'auth');
+  el.innerHTML = t('/', 'home', 'الرئيسية', page === 'home') + t('', 'grid', 'الأقسام', page === 'category', 'data-open-cats') + t('/offers/', 'offers', 'العروض', page === 'offers') + t('/cart.html', 'cart', 'السلة', page === 'cart') + t(SESSION ? '/profile' : '/auth.html', 'user', 'حسابي', ['account', 'profile', 'myorders', 'myreviews', 'auth'].includes(page));
   document.body.appendChild(el);
   const sh = document.createElement('div'); sh.className = 'sheet'; sh.hidden = true;
   sh.innerHTML = `<div class="sheet__scrim" data-close-cats></div><div class="sheet__panel" role="dialog" aria-modal="true" aria-label="الأقسام"><div class="sheet__head"><h2>تسوق حسب القسم</h2><button class="icon-btn" data-close-cats aria-label="إغلاق">${ic('x')}</button></div><div id="sheet-grid" class="sheet__grid"></div></div>`;
   document.body.appendChild(sh);
   const close = () => { sh.hidden = true; document.body.classList.remove('no-scroll'); };
-  const open = async () => { sh.hidden = false; document.body.classList.add('no-scroll'); const list = await loadCats(); $('#sheet-grid').innerHTML = [['/offers/', 'offers', 'العروض'], ...list.map(c => [curl(c.slug), c.slug, c.name])].map(([h, i, n]) => `<a href="${h}" class="sheet__tile"><span class="cat__ic">${ic(i)}</span><span>${esc(n)}</span></a>`).join(''); };
+  const open = async () => { sh.hidden = false; document.body.classList.add('no-scroll'); const list = await loadCats(); $('#sheet-grid').innerHTML = [['/offers/', 'offers', 'العروض'], ['/yours-offer', 'sparkle', 'عروضك'], ...list.map(c => [curl(c.slug), c.slug, c.name])].map(([h, i, n]) => `<a href="${h}" class="sheet__tile"><span class="cat__ic">${ic(i)}</span><span>${esc(n)}</span></a>`).join(''); };
   document.addEventListener('click', e => { if (e.target.closest('[data-open-cats]')) open(); else if (e.target.closest('[data-close-cats]')) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sh.hidden) close(); });
 }
@@ -260,7 +267,8 @@ function renderTabbar(page) {
 function renderFooter() {
   const l = (h, t) => `<a href="${h}">${t}</a>`;
   $('#site-footer').innerHTML = `<footer class="ftr"><div class="wrap"><div class="ftr__row"><a href="/" class="logo" aria-label="Kitchenly"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY</a>
-  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/track.html', 'تتبع طلبك')}${l('/policies.html#shipping', 'الشحن والتوصيل')}${l('/policies.html#returns', 'الاستبدال والاسترجاع')}${l('/policies.html#privacy', 'الخصوصية')}${l('/policies.html#terms', 'الشروط والأحكام')}</nav></div>
+  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/contact.html', 'تواصل معنا')}</nav></div>
+  <nav class="ftr__links ftr__legal" aria-label="السياسات">${l('/policy', 'سياسات المتجر')}${l('/policy#returns', 'الاستبدال والاسترجاع')}${l('/privacy', 'سياسة الخصوصية')}${l('/policy#terms', 'الشروط والأحكام')}${l('/join-us', 'انضم إلينا')}</nav>
   <p class="ftr__copy">جميع الحقوق محفوظة، Kitchenly ${new Date().getFullYear()}</p></div></footer>`;
 }
 

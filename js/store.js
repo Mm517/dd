@@ -8,32 +8,49 @@ const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><s
 const sortList = (list, s) => { const a = [...list]; if (s === 'price-asc') a.sort((x, y) => x.price - y.price); else if (s === 'price-desc') a.sort((x, y) => y.price - x.price); else if (s === 'popular') a.sort((x, y) => y.reviews_count - x.reviews_count); else if (s === 'discount') a.sort((x, y) => discount(y) - discount(x)); return a; };
 
 /* ---------------- الرئيسية ---------------- */
-const ship = () => {
-  const sub = Cart.subtotal(), left = K.freeShipFrom - sub;
-  const msg = sub === 0 ? `<b>شحن مجاني</b> على الطلبات فوق ${fmt(K.freeShipFrom)} جنيه` : left > 0 ? `أضف <b>${money(left)}</b> للحصول على <b>شحن مجاني</b>` : '<b>مبروك! طلبك مؤهل للشحن المجاني</b>';
-  return `<div class="ship">${ic('truck', 'ico-lg')}<div class="ship__body">${msg}<div class="ship__bar"><i style="width:${sub === 0 ? 0 : Math.min(100, Math.round(sub / K.freeShipFrom * 100))}%"></i></div></div>${sub > 0 ? '<a href="/cart.html" class="btn btn-primary btn-sm">السلة</a>' : ''}</div>`;
+const NEWS_KEY = 'kt_news';
+const tickSvg = '<svg class="tick" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="m14 27 8 8 16-18"/></svg>';
+const newsBox = () => {
+  let done = false; try { done = localStorage.getItem(NEWS_KEY) === '1'; } catch { /* */ }
+  return `<section class="sec news ${done ? 'done' : ''}" id="news" aria-labelledby="news-t"><div class="news__form"><div class="news__txt"><h2 id="news-t">خلّيك أول من يعرف بالعروض</h2><p>اكتب إيميلك ونبعتلك الخصومات والمنتجات الجديدة أول بأول.</p></div>
+    <form id="news-f" novalidate><label class="sr" for="news-e">البريد الإلكتروني</label><input class="field" id="news-e" type="email" dir="ltr" autocomplete="email" placeholder="name@example.com" required maxlength="120"><button class="btn btn-sun" id="news-b">اشترك</button></form><p class="news__err" id="news-err" role="alert" hidden></p></div>
+    <div class="news__ok" role="status">${tickSvg}<b>تم الاشتراك بنجاح</b><span>هتوصلك أحدث العروض على إيميلك.</span></div></section>`;
 };
+function bindNews() {
+  const box = $('#news'), f = $('#news-f'); if (!box || !f) return;
+  const err = $('#news-err'), show = m => { err.textContent = m; err.hidden = false; };
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); err.hidden = true;
+    const email = $('#news-e').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return show('اكتب بريدًا إلكترونيًا صحيحًا');
+    const b = $('#news-b'); b.disabled = true;
+    const { error } = await sb.from('kt_subscribers').insert({ email });
+    b.disabled = false;
+    if (error && error.code !== '23505') return show('تعذر الاشتراك الآن، حاول مرة أخرى');   // 23505 = مشترك بالفعل، نعتبرها نجاح
+    try { localStorage.setItem(NEWS_KEY, '1'); } catch { /* */ }
+    box.classList.add('done');
+  });
+}
 
 pages.home = async () => {
-  const b = K.banner, perks = [['shield', 'جودة مضمونة', 'منتجات مفحوصة قبل الشحن'], ['truck', 'توصيل سريع', 'لجميع محافظات مصر'], ['ret', 'استبدال سهل', 'خلال 14 يومًا'], ['card', 'دفع آمن', 'أونلاين أو إنستا باي']];
+  const b = K.banner;
   $('#app').innerHTML = `<div class="wrap">
-    <a class="banner" href="${esc(b.href)}" aria-label="${esc(b.alt)}"><img src="${esc(b.image)}" alt="${esc(b.alt)}" fetchpriority="high"></a>
-    <section class="sec" id="cats-sec">${head('أقسام المتجر', 'اختر القسم الذي تحتاجه')}<div class="cats" id="cats">${Array.from({ length: 7 }, () => '<div class="skel" style="height:140px"></div>').join('')}</div></section>
-    <div class="perks">${perks.map(([i, t, s]) => `<div class="perk">${ic(i)}<div><b>${t}</b><small>${s}</small></div></div>`).join('')}</div>
-    <section class="sec" id="ship-sec">${ship()}</section>
-    <section class="sec" id="deals-sec" hidden>${head('عروض اليوم', 'خصومات حقيقية على منتجات مختارة', '/offers/')}<div class="rail" id="deals"></div></section>
+    <a class="banner" href="${esc(b.href)}" aria-label="${esc(b.alt)}"><picture>${b.wide ? `<source media="(min-width:600px)" srcset="${esc(b.wide)}">` : ''}<img src="${esc(b.image)}" alt="${esc(b.alt)}" fetchpriority="high"></picture></a>
+    <section class="sec sec--cats" id="cats-sec"><div class="sec__head"><h2>أقسام المتجر</h2></div><div class="cats" id="cats">${Array.from({ length: 8 }, () => '<div class="skel" style="height:84px"></div>').join('')}</div></section>
+    <section class="sec" id="deals-sec" hidden>${head('عروض اليوم', 'خصومات حقيقية على منتجات مختارة', '/offers/')}<div class="grid" id="deals"></div></section>
     <section class="sec" id="best-sec">${head('الأكثر مبيعًا', 'منتجات يختارها عملاؤنا أكثر', '/shop.html?sort=popular')}<div class="grid" id="best">${skeletons(8)}</div></section>
-    <section class="sec" id="recent-sec" hidden>${head('شاهدتها مؤخرًا')}<div class="rail" id="recent"></div></section></div>`;
-  const recentSlugs = (() => { try { return JSON.parse(localStorage.getItem('kt_recent') || '[]').slice(0, 10); } catch { return []; } })();
+    <section class="sec" id="recent-sec" hidden>${head('شاهدتها مؤخرًا')}<div class="grid" id="recent"></div></section>
+    ${newsBox()}</div>`;
+  bindNews();
+  const recentSlugs = (() => { try { return JSON.parse(localStorage.getItem('kt_recent') || '[]').slice(0, 8); } catch { return []; } })();
   const [cats, best, sale, rec] = await Promise.allSettled([loadCats(), db.products({ featured: true, limit: 8, sort: 'popular' }), db.products({ sale: true, sort: 'popular' }), recentSlugs.length ? db.bySlugs(recentSlugs) : Promise.resolve([])]);
-  const tile = (href, icon, name, sub = '', cls = '') => `<a href="${href}" class="cat ${cls}"><span class="cat__ic">${ic(icon)}</span><span>${esc(name)}</span>${sub ? `<small>${sub}</small>` : ''}</a>`;
+  const tile = (href, icon, name, cls = '') => `<a href="${href}" class="cat ${cls}"><span class="cat__ic">${ic(icon)}</span><span>${esc(name)}</span></a>`;
   const saleList = sale.status === 'fulfilled' ? sale.value : [];
-  $('#cats').innerHTML = cats.status === 'fulfilled' && cats.value.length ? cats.value.map(c => tile(curl(c.slug), c.slug, c.name)).join('') + tile('/offers/', 'offers', 'العروض', saleList.length ? `${saleList.length} منتج مخفّض` : '', 'cat--offers') : errorBox();
-  if (saleList.length) { $('#deals-sec').hidden = false; $('#deals').innerHTML = [...saleList].sort((a, c) => discount(c) - discount(a)).map(card).join(''); }
+  $('#cats').innerHTML = cats.status === 'fulfilled' && cats.value.length ? cats.value.map(c => tile(curl(c.slug), c.slug, c.name)).join('') + tile('/offers/', 'offers', 'العروض', 'cat--offers') + tile('/yours-offer', 'sparkle', 'عروضك', 'cat--offers') : errorBox();
+  if (saleList.length) { $('#deals-sec').hidden = false; $('#deals').innerHTML = [...saleList].sort((a, c) => discount(c) - discount(a)).slice(0, 8).map(card).join(''); }
   $('#best').innerHTML = best.status === 'fulfilled' ? (best.value.length ? best.value.map(card).join('') : emptyBox('لا توجد منتجات حاليًا.')) : errorBox();
   if (rec.status === 'fulfilled' && rec.value.length) { const l = [...rec.value].sort((a, c) => recentSlugs.indexOf(a.slug) - recentSlugs.indexOf(c.slug)); $('#recent-sec').hidden = false; $('#recent').innerHTML = l.map(card).join(''); }
 };
-document.addEventListener('click', e => { if (e.target.closest('[data-add]')) setTimeout(() => { const s = $('#ship-sec'); if (s) s.innerHTML = ship(); }, 0); });
 
 /* ---------------- صفحات القوائم: الأقسام والعروض ---------------- */
 function listShell({ title, sub, icon, crumbs, sortable = true }) {
@@ -41,7 +58,7 @@ function listShell({ title, sub, icon, crumbs, sortable = true }) {
   <div style="display:flex;gap:14px;align-items:center">${icon ? `<span class="cat__ic">${ic(icon)}</span>` : ''}<div><h1>${title}</h1>${sub ? `<p class="page__sub">${sub}</p>` : ''}</div></div>
   <div class="toolbar"><div id="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>${sortable ? sortBar() : ''}</div><p id="count" class="count" aria-live="polite"></p><div class="grid" id="grid" style="margin-top:12px">${skeletons(8)}</div></div>`;
 }
-const chipsRow = (cats, cur) => `<a class="chip" href="/shop.html" aria-current="false">الكل</a><a class="chip" href="/offers/" aria-current="${cur === 'offers'}">العروض</a>` + cats.map(c => `<a class="chip" href="${curl(c.slug)}" aria-current="${cur === c.slug}">${esc(c.name)}</a>`).join('');
+const chipsRow = (cats, cur) => `<a class="chip" href="/shop.html" aria-current="false">الكل</a><a class="chip" href="/offers/" aria-current="${cur === 'offers'}">العروض</a><a class="chip" href="/yours-offer" aria-current="false">عروضك</a>` + cats.map(c => `<a class="chip" href="${curl(c.slug)}" aria-current="${cur === c.slug}">${esc(c.name)}</a>`).join('');
 
 pages.category = async () => {
   const slug = location.pathname.match(/^\/category\/([^/]+)/)?.[1] || params.get('c') || '';
@@ -129,7 +146,7 @@ pages.product = async () => {
   const d = discount(p), out = p.stock < 1, feats = Array.isArray(p.features) ? p.features : [];
   app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><a href="/shop.html">المنتجات</a>${p.category ? `<span>/</span><a href="${curl(p.category.slug)}">${esc(p.category.name)}</a>` : ''}<span>/</span><span>${esc(p.name)}</span></nav>
   <div class="pgrid"><div class="pimg"><img src="${esc(imgSrc(p))}" alt="${esc(p.name)}">${d ? `<span class="pcard__off">خصم ${d}%</span>` : ''}</div>
-  <div class="pinfo"><h1>${esc(p.name)}</h1><div class="stars" style="margin-top:8px">${stars(p.rating)}<span>${p.rating} (${p.reviews_count} تقييم)</span></div>
+  <div class="pinfo"><h1>${esc(p.name)}</h1><a href="#reviews" class="stars stars--link" id="prod-rating" style="margin-top:8px">${p.reviews_count > 0 ? `${stars(p.rating)}<span>${p.rating} (${p.reviews_count} تقييم)</span>` : '<span class="newtag">لا تقييمات بعد، كن أول من يقيّم</span>'}</a>
     <div class="price" style="margin-top:14px"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>
     <p class="pinfo__desc">${esc(p.description)}</p>
     ${feats.length ? `<ul class="ticks">${feats.map(f => `<li>${ic('check')}${esc(f)}</li>`).join('')}</ul>` : ''}
@@ -137,7 +154,9 @@ pages.product = async () => {
     <div class="buyrow"><div class="qty" role="group" aria-label="الكمية"><button id="qm" aria-label="تقليل الكمية">${ic('minus', 'ico-sm')}</button><output id="qv">1</output><button id="qp" aria-label="زيادة الكمية">${ic('plus', 'ico-sm')}</button></div>
       <button id="add" class="btn btn-primary" ${out ? 'disabled' : ''}>أضف إلى السلة</button><button id="buy" class="btn btn-sun" ${out ? 'disabled' : ''}>اشتر الآن</button></div>
     <div class="assure">${[['truck', 'شحن لجميع المحافظات'], ['card', 'دفع أونلاين أو إنستا باي'], ['ret', 'استبدال خلال 14 يومًا']].map(([i, t]) => `<div>${ic(i)}${t}</div>`).join('')}</div></div></div>
+  <section class="sec reviews" id="reviews"></section>
   <section class="sec" id="related-wrap" hidden>${head('منتجات مشابهة')}<div class="grid" id="related"></div></section></div>`;
+  if (window.KTApp.mountReviews) window.KTApp.mountReviews(p, $('#reviews'));
   let q = 1; const max = Math.min(p.stock, 20), set = v => { q = Math.max(1, Math.min(v, max || 1)); $('#qv').textContent = q; };
   $('#qm').onclick = () => set(q - 1); $('#qp').onclick = () => set(q + 1);
   $('#add').onclick = () => { Cart.add(p, q); toast('تمت إضافة المنتج إلى السلة'); };
@@ -205,6 +224,7 @@ pages.checkout = async () => {
     const { data, error } = await sb.rpc('kt_place_order', { p_name: v.name, p_phone: v.phone.trim(), p_city: v.city, p_address: v.address, p_notes: v.notes || null, p_payment: v.payment, p_items: Cart.read().map(i => ({ slug: i.slug, qty: i.qty })) });
     btn.disabled = false; btn.textContent = 'تأكيد الطلب';
     if (error) { const m = (error.message || '').match(/out_of_stock:(.+)/); return show(m ? `الكمية المطلوبة من "${m[1]}" غير متاحة، عدّلها من السلة` : ERR[(error.message || '').trim()] || 'تعذر إرسال الطلب، حاول مرة أخرى'); }
+    try { localStorage.setItem('kt_last', JSON.stringify({ no: data.order_no, phone: v.phone.trim() })); } catch { /* التخزين محجوب */ }
     Cart.clear(); location.href = `/order-success.html?no=${encodeURIComponent(data.order_no)}&total=${data.total}&pay=${encodeURIComponent(v.payment)}`;
   });
 };
@@ -231,23 +251,49 @@ const STEPS = ['new', 'confirmed', 'shipping', 'delivered'];
 function orderCard(o) {
   const idx = STEPS.indexOf(o.status), cancelled = o.status === 'cancelled';
   return `<article class="card order"><div class="order__head"><h3 dir="ltr">${esc(o.order_no)}</h3><span class="status ${cancelled ? 'bad' : ''}">${STATUS[o.status]}</span></div>
+  ${o.created_at ? `<p class="order__date">${new Date(o.created_at).toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })}</p>` : ''}
   ${cancelled ? '' : `<ol class="steps">${STEPS.map((s, i) => `<li class="${i <= idx ? 'on' : ''}"><i></i>${STATUS[s]}</li>`).join('')}</ol>`}
   <ul class="rows" style="border-top:1px solid var(--line);padding-top:12px">${(o.items || []).map(i => `<li style="display:flex;justify-content:space-between;gap:12px"><span>${esc(i.name)} <span style="color:var(--muted)">x${i.qty}</span></span><span>${money(i.price * i.qty)}</span></li>`).join('')}</ul>
   <dl class="rows"><div><dt>الدفع</dt><dd>${PAYNAME[o.payment_method] || ''}</dd></div><div><dt>الشحن</dt><dd>${+o.shipping ? money(o.shipping) : 'مجاني'}</dd></div><div class="tot"><dt>الإجمالي</dt><dd>${money(o.total)}</dd></div></dl>
   <p style="font-size:.82rem;color:var(--muted)">${esc(o.city)} - ${esc(o.address)}</p></article>`;
 }
 window.KTApp.orderCard = orderCard;
-pages.track = () => {
-  $('#app').innerHTML = `<div class="wrap page"><div style="max-width:680px;margin-inline:auto"><h1>تتبع طلبك</h1><p class="page__sub">اكتب رقم الطلب ورقم الموبايل الذي استخدمته عند الشراء.</p>
-  <form id="tr" class="card form-grid two" style="margin-top:20px;padding:20px"><div><label class="lbl" for="no">رقم الطلب</label><input class="field" id="no" required dir="ltr" placeholder="KT-250101-12345" value="${esc(params.get('no') || '')}"></div><div><label class="lbl" for="ph">رقم الموبايل</label><input class="field" id="ph" required inputmode="numeric" maxlength="11" dir="ltr" placeholder="01xxxxxxxxx"></div><button class="btn btn-primary" style="grid-column:1/-1">بحث</button></form>
-  <div id="tr-out" style="margin-top:20px" aria-live="polite"></div></div></div>`;
+const lastOrder = () => { try { return JSON.parse(localStorage.getItem('kt_last') || 'null'); } catch { return null; } };
+pages.track = async () => {
+  const no = (params.get('no') || '').trim().toUpperCase();
+  $('#app').innerHTML = `<div class="wrap page"><div style="max-width:680px;margin-inline:auto"><h1>تتبع طلبك</h1><p class="page__sub" id="trk-sub">جارٍ البحث عن طلبك...</p>
+  <div id="trk-pick" class="trk__pick"></div><div id="tr-out" style="margin-top:16px" aria-live="polite"><div class="skel" style="height:160px"></div></div>
+  <details class="card trk__manual" id="trk-manual"><summary>تتبّع طلب آخر برقم الطلب ورقم الموبايل</summary>
+  <form id="tr" class="form-grid two" style="padding:0 18px 18px"><div><label class="lbl" for="no">رقم الطلب</label><input class="field" id="no" required dir="ltr" placeholder="KT-250101-12345" value="${esc(no)}"></div><div><label class="lbl" for="ph">رقم الموبايل</label><input class="field" id="ph" required inputmode="numeric" maxlength="11" dir="ltr" placeholder="01xxxxxxxxx"></div><button class="btn btn-primary" style="grid-column:1/-1">بحث</button></form></details></div></div>`;
+  const out = $('#tr-out'), sub = $('#trk-sub'), pick = $('#trk-pick'), manual = $('#trk-manual');
+  let mine = [], target = null;
+  /* 1) حساب مسجّل: طلباته تظهر بدون كتابة أي شيء */
+  try {
+    const ses = await window.KTApp.getSession();
+    if (ses) { const { data } = await sb.from('kt_orders').select('*').eq('user_id', ses.user.id).order('created_at', { ascending: false }).limit(20); mine = data || []; }
+  } catch { /* نكمل بالطرق الأخرى */ }
+  if (mine.length) target = no ? mine.find(o => o.order_no === no) : mine[0];
+  /* 2) زائر: آخر طلب تم من نفس الجهاز */
+  if (!target) {
+    const last = lastOrder();
+    if (last && (!no || last.no === no)) { try { const { data } = await sb.rpc('kt_track_order', { p_order_no: last.no, p_phone: last.phone }); if (data) target = data; } catch { /* */ } }
+  }
+  if (target) {
+    sub.textContent = 'حالة طلبك الآن';
+    out.innerHTML = orderCard(target);
+    if (mine.length > 1) pick.innerHTML = `<span style="color:var(--muted);font-size:.85rem">طلباتك:</span>` + mine.map(o => `<a class="chip" href="/track.html?no=${encodeURIComponent(o.order_no)}" aria-current="${o.order_no === target.order_no}" dir="ltr">${esc(o.order_no)}</a>`).join('');
+  } else {
+    sub.textContent = no ? (window.KTApp.session ? 'لم نجد هذا الطلب على حسابك. اكتب رقم الموبايل الذي استخدمته عند الشراء.' : 'اكتب رقم الموبايل الذي استخدمته عند الشراء لعرض الطلب.') : mine.length === 0 && window.KTApp.session ? 'لا توجد طلبات على حسابك بعد.' : 'اكتب رقم الطلب ورقم الموبايل الذي استخدمته عند الشراء.';
+    out.innerHTML = ''; manual.open = true;
+    if (!window.KTApp.session && !no) pick.innerHTML = `<a class="link-btn" href="/auth.html?next=/track.html">سجّل دخولك لتظهر لك طلباتك تلقائيًا</a>`;
+  }
   $('#tr').addEventListener('submit', async e => {
-    e.preventDefault(); const out = $('#tr-out'); out.innerHTML = '<div class="skel" style="height:120px"></div>';
+    e.preventDefault(); out.innerHTML = '<div class="skel" style="height:120px"></div>';
     const { data, error } = await sb.rpc('kt_track_order', { p_order_no: $('#no').value, p_phone: $('#ph').value.trim() });
     if (error) { out.innerHTML = errorBox(); return; }
     out.innerHTML = data ? orderCard(data) : `<div class="card empty"><p>لم نجد طلبًا بهذه البيانات. تأكد من الرقمين وحاول مرة أخرى.</p></div>`;
   });
-  if (params.get('no')) $('#ph').focus();
+  if (manual.open) (no ? $('#ph') : $('#no')).focus();
 };
 
 /* ---------------- تواصل / سياسات / 404 ---------------- */
@@ -262,13 +308,6 @@ pages.contact = () => {
   });
 };
 pages.notfound = () => { $('#app').innerHTML = `<div class="wrap page">${emptyBox('الصفحة التي تبحث عنها غير موجودة.', '/', 'العودة للرئيسية')}</div>`; };
-pages.policies = () => {
-  const s = (id, t, body) => `<section id="${id}"><h2>${t}</h2>${body}</section>`;
-  $('#app').innerHTML = `<div class="wrap page"><h1 style="margin-bottom:24px">السياسات والمعلومات</h1><div class="legal">
-  ${s('shipping', 'الشحن والتوصيل', `<p>نوصل لجميع محافظات مصر. رسوم الشحن ${money(K.shippingFee)}، ويصبح الشحن مجانيًا للطلبات بقيمة ${money(K.freeShipFrom)} أو أكثر.</p><p>نتصل بك لتأكيد الطلب قبل الشحن، ويمكنك متابعة حالته من صفحة <a href="/track.html">تتبع طلبك</a>.</p>`)}
-  ${s('payment', 'طرق الدفع', '<p>ندعم الدفع أونلاين (بطاقة أو محفظة إلكترونية) والتحويل عبر إنستا باي. يتم تأكيد الطلب بعد وصول الدفع.</p>')}
-  ${s('returns', 'الاستبدال والاسترجاع', '<p>يمكنك طلب استبدال المنتج خلال 14 يومًا من الاستلام بشرط أن يكون بحالته الأصلية وغير مستخدم. للمنتجات التالفة أو الخاطئة نتحمل تكلفة الاستبدال.</p>')}
-  ${s('privacy', 'سياسة الخصوصية', '<p>نجمع الاسم ورقم الموبايل والبريد والعنوان فقط لتجهيز طلبك وتوصيله، ولا نشارك بياناتك مع أي جهة غير شركة الشحن. عند البحث بالصورة تُرسل الصورة للتحليل فقط ولا تُحفظ. يمكنك طلب حذف بياناتك بالتواصل معنا.</p>')}
-  ${s('terms', 'الشروط والأحكام', '<p>الأسعار بالجنيه المصري وقد تتغير دون إشعار مسبق، ويُحاسب العميل بالسعر المعروض وقت تأكيد الطلب. نحتفظ بحق إلغاء الطلب في حال نفاد المخزون مع إبلاغ العميل.</p>')}</div></div>`;
-};
+/* صفحة السياسات القديمة: نحوّل للصفحات الجديدة */
+pages.policies = () => { location.replace(location.hash === '#privacy' ? '/privacy' : `/policy${location.hash}`); };
 })();

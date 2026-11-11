@@ -1,3 +1,15 @@
 /product-*.html  /product.html  200
 /category/*  /category/index.html  200
 /offers  /offers/index.html  200
+/Yours-offer  /yours-offer  301
+/account.html  /profile  301
+/policies.html  /policy  301
+/privacy  /privacy/index.html  200
+/policy  /policy/index.html  200
+/join-us  /join-us/index.html  200
+/help  /help/index.html  200
+/yours-offer  /yours-offer/index.html  200
+/profile  /profile/index.html  200
+/profile/my-orders  /profile/my-orders/index.html  200
+/profile/my-reviews  /profile/my-reviews/index.html  200
+/track  /track.html  200

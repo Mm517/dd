@@ -1,0 +1,3 @@
+/product-*.html  /product.html  200
+/category/*  /category/index.html  200
+/offers  /offers/index.html  200

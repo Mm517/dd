@@ -278,8 +278,8 @@ pages.privacy = () => legal('سياسة الخصوصية', LAST, [
    انضم إلينا: /join-us
    ===================================================================== */
 pages.join = () => {
-  const ROLES = [['delivery', 'مندوب توصيل', 'truck', 'وصّل طلبات Kitchenly في منطقتك'], ['partner', 'شريك بيع أو مورّد', 'box', 'اعرض منتجاتك معنا أو وفّرها لنا'], ['affiliate', 'تسويق بالعمولة', 'tag', 'روّج للمتجر وسجّل عملاءك'], ['team', 'العمل مع الفريق', 'users', 'خدمة عملاء، تجهيز طلبات، تصميم، وغيرها']];
-  $('#app').innerHTML = `<div class="wrap page"><div class="join"><h1>انضم إلينا</h1><p class="page__sub">عايز تشتغل معانا أو تبقى شريك نجاح؟ اختر المجال واكتب بياناتك وهنتواصل معاك.</p>
+  const ROLES = [['delivery', 'مندوب توصيل', 'st-ship', 'وصّل طلبات Kitchenly في منطقتك'], ['partner', 'شريك بيع أو مورّد', 'box', 'اعرض منتجاتك معنا أو وفّرها لنا'], ['affiliate', 'تسويق بالعمولة', 'tag', 'روّج للمتجر وسجّل عملاءك'], ['team', 'العمل مع الفريق', 'users', 'خدمة عملاء، تجهيز طلبات، تصميم، وغيرها']];
+  $('#app').innerHTML = `<div class="wrap page"><div class="join"><div class="join__hero">${ic('join', 'hero-ic')}<h1>انضم إلينا</h1></div><p class="page__sub">عايز تشتغل معانا أو تبقى شريك نجاح؟ اختر المجال واكتب بياناتك وهنتواصل معاك.</p>
   <form id="jf" class="card" style="padding:22px;display:grid;gap:16px;margin-top:20px" novalidate>
     <fieldset class="join__roles"><legend class="lbl">تحب تنضم كـ</legend>${ROLES.map(([k, t, i, d], n) => `<label class="role"><input type="radio" name="role" value="${t}" ${n === 0 ? 'checked' : ''}><span>${ic(i, 'ico-lg')}<b>${t}</b><small>${d}</small></span></label>`).join('')}</fieldset>
     <div class="form-grid two"><div><label class="lbl" for="jn">الاسم</label><input class="field" id="jn" required maxlength="80" autocomplete="name"></div><div><label class="lbl" for="jp">رقم الموبايل</label><input class="field" id="jp" required inputmode="numeric" maxlength="11" dir="ltr" placeholder="01xxxxxxxxx" autocomplete="tel"></div>

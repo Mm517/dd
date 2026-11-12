@@ -53,7 +53,10 @@ const ICONS = {
   tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
   default: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'
 };
-const ic = (n, c = 'ico') => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
+/* أيقونات صور (3D) بدل الـ SVG للأقسام والعروض وحالات الطلب */
+const IMGDIR = '/assets/img/icons/';
+const ICONIMG = { offers: 'offers', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us' };
+const ic = (n, c = 'ico') => ICONIMG[n] ? `<img class="${c} ico-img" src="${IMGDIR}${ICONIMG[n]}.png" alt="" loading="lazy" decoding="async">` : `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
 const stars = r => { const n = Math.round(r); return `<span class="stars" aria-label="تقييم ${r} من 5">${Array.from({ length: 5 }, (_, i) => `<svg class="${i < n ? 'on' : ''}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`).join('')}</span>`; };
 
 /* ---------- هاشتاج الصفحة (شرح عام بالعربي) ---------- */
@@ -174,16 +177,19 @@ function fileToJpeg(file, max = 1024) {
 const discount = p => (p.old_price > p.price ? Math.round((1 - p.price / p.old_price) * 100) : 0);
 function card(p) {
   const d = discount(p), out = p.stock < 1, low = !out && p.stock <= 10, save = d ? Math.round(p.old_price - p.price) : 0;
-  return `<article class="pcard"><a href="${purl(p)}" class="pcard__img"><img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">${d ? `<span class="pcard__off">-${d}%</span>` : ''}${p.badge ? `<span class="pcard__badge">${esc(p.badge)}</span>` : ''}</a>
+  const il = imgList(p), multi = il.length > 1;
+  return `<article class="pcard"><a href="${purl(p)}" class="pcard__img${multi ? ' is-multi' : ''}" ${multi ? `data-imgs="${esc(JSON.stringify(il))}"` : ''}><img src="${esc(il[0])}" alt="${esc(p.name)}" loading="lazy">${multi ? `<span class="pcard__dots" aria-hidden="true">${il.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}${d ? `<span class="pcard__off">-${d}%</span>` : ''}${p.badge ? `<span class="pcard__badge">${esc(p.badge)}</span>` : ''}</a>
   <div class="pcard__body"><a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a>${p.reviews_count > 0 ? `<div class="stars">${stars(p.rating)}<span>(${p.reviews_count})</span></div>` : '<div class="stars"><span class="newtag">لا تقييمات بعد</span></div>'}
   <div class="price"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>${save ? `<p class="pcard__save">وفّر ${fmt(save)} جنيه</p>` : ''}${low ? `<p class="pcard__low">متبقي ${p.stock} قطع فقط</p>` : ''}
   <button class="btn btn-primary btn-block" data-add="${esc(p.slug)}" ${out ? 'disabled' : ''}>${out ? 'غير متوفر' : 'أضف للسلة'}</button></div></article>`;
 }
 const imgSrc = p => (/^https?:/.test(p.image || '') ? p.image : `/${String(p.image || '').replace(/^\//, '')}`);
+/* كل صور المنتج: الرئيسية أولًا ثم الباقي (عمود images) بدون تكرار */
+const imgList = p => { const first = imgSrc(p); const rest = (Array.isArray(p.images) ? p.images : []).filter(Boolean).map(x => imgSrc({ image: x })).filter(x => x !== first); return [first, ...new Set(rest)]; };
 const skeletons = (n = 4) => Array.from({ length: n }, () => '<div class="skel" style="aspect-ratio:3/4"></div>').join('');
 const errorBox = (msg = 'تعذر تحميل البيانات. تحقق من الاتصال ثم حاول مرة أخرى.') => `<div class="card empty"><p>${esc(msg)}</p><button class="btn btn-ghost" onclick="location.reload()">إعادة المحاولة</button></div>`;
 const emptyBox = (msg, href = '/shop.html', label = 'تصفح المنتجات') => `<div class="card empty"><p>${esc(msg)}</p><a class="btn btn-primary" href="${href}">${label}</a></div>`;
-const STATUS = { new: 'تم استلام الطلب', confirmed: 'تم التأكيد', shipping: 'في الطريق إليك', delivered: 'تم التسليم', cancelled: 'ملغي' };
+const STATUS = { new: 'تم استلام الطلب', confirmed: 'تم التأكيد', shipping: 'الأوردر في الطريق', delivered: 'المندوب وصل', cancelled: 'ملغي' };
 const PAYNAME = { cod: 'عند الاستلام', wallet: 'محفظة إلكترونية', online: 'دفع أونلاين', instapay: 'إنستا باي' };
 
 let SESSION = null;
@@ -279,9 +285,35 @@ document.addEventListener('click', e => {
   Cart.add(p); toast('تمت إضافة المنتج إلى السلة');
 });
 
+/* تبديل صور المنتج عند مرور المؤشر على الكارت (الصور اللي ما تتحمّلش بتتشال تلقائيًا) */
+(() => {
+  const STEP = 1100, tm = new WeakMap();
+  const dots = (a, n, on) => { const d = $('.pcard__dots', a); if (d) d.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i === on ? 'on' : ''}"></i>`).join(''); };
+  const show = (a, list, i) => { const im = $('img', a); if (im) im.src = list[i]; a.dataset.i = i; dots(a, list.length, i); };
+  const probe = src => new Promise(res => { const im = new Image(); im.onload = () => res(src); im.onerror = () => res(null); im.src = src; });
+  const verify = async a => {
+    if (a.dataset.ok) return; a.dataset.ok = '1';
+    const list = JSON.parse(a.dataset.imgs), ok = (await Promise.all(list.slice(1).map(probe))).filter(Boolean);
+    const clean = [list[0], ...ok]; a.dataset.imgs = JSON.stringify(clean); dots(a, clean.length, +a.dataset.i || 0);
+    if (clean.length < 2) { a.classList.remove('is-multi'); const d = $('.pcard__dots', a); if (d) d.remove(); }
+  };
+  const start = async a => {
+    if (tm.has(a)) return; tm.set(a, 0); await verify(a);
+    if (!tm.has(a)) return;
+    const list = JSON.parse(a.dataset.imgs); if (list.length < 2) return;
+    let i = 0; const tick = () => { i = (i + 1) % list.length; show(a, list, i); };
+    tick(); tm.set(a, setInterval(tick, STEP));
+  };
+  const stop = a => { const t = tm.get(a); if (t === undefined) return; clearInterval(t); tm.delete(a); const list = JSON.parse(a.dataset.imgs || '[]'); if (list.length) show(a, list, 0); };
+  document.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const a = e.target.closest?.('.pcard__img[data-imgs]'); if (a && !a.contains(e.relatedTarget)) start(a); });
+  document.addEventListener('pointerout', e => { if (e.pointerType === 'touch') return; const a = e.target.closest?.('.pcard__img[data-imgs]'); if (a && !a.contains(e.relatedTarget)) stop(a); });
+  document.addEventListener('focusin', e => { const a = e.target.closest?.('.pcard__img[data-imgs]'); if (a) start(a); });
+  document.addEventListener('focusout', e => { const a = e.target.closest?.('.pcard__img[data-imgs]'); if (a) stop(a); });
+})();
+
 const recent = slug => { try { const l = JSON.parse(localStorage.getItem('kt_recent') || '[]').filter(x => x !== slug); l.unshift(slug); localStorage.setItem('kt_recent', JSON.stringify(l.slice(0, 12))); } catch { /* التخزين محجوب */ } };
 const pages = {};
-window.KTApp = { recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
+window.KTApp = { recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
 
 document.addEventListener('DOMContentLoaded', async () => {
   try { await getSession(); } catch { /* بدون اتصال */ }

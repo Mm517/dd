@@ -1,7 +1,7 @@
 /* Kitchenly - صفحات المتجر: الرئيسية، المنتجات، الأقسام، العروض، المنتج، السلة، الدفع، التتبع. */
 (() => {
 'use strict';
-const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag } = window.KTApp;
+const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag } = window.KTApp;
 
 const head = (title, sub, href, label = 'عرض الكل') => `<div class="sec__head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${href ? `<a href="${href}" class="sec__all">${label} ${ic('chevL', 'ico-sm')}</a>` : ''}</div>`;
 const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><select id="sort" class="field"><option value="new">الأحدث</option><option value="popular">الأكثر تقييمًا</option><option value="price-asc">السعر من الأقل</option><option value="price-desc">السعر من الأعلى</option><option value="discount">الأعلى خصمًا</option></select></div>`;
@@ -145,7 +145,7 @@ pages.product = async () => {
   if (p.category) setHashtag(`#${p.category.name.trim().replace(/\s+/g, '_')}`);
   const d = discount(p), out = p.stock < 1, feats = Array.isArray(p.features) ? p.features : [];
   app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><a href="/shop.html">المنتجات</a>${p.category ? `<span>/</span><a href="${curl(p.category.slug)}">${esc(p.category.name)}</a>` : ''}<span>/</span><span>${esc(p.name)}</span></nav>
-  <div class="pgrid"><div class="pimg"><img src="${esc(imgSrc(p))}" alt="${esc(p.name)}">${d ? `<span class="pcard__off">خصم ${d}%</span>` : ''}</div>
+  <div class="pgrid"><div class="pgal"><div class="pimg"><img id="pmain" src="${esc(imgSrc(p))}" alt="${esc(p.name)}">${d ? `<span class="pcard__off">خصم ${d}%</span>` : ''}</div><div class="pthumbs" id="pthumbs" hidden></div></div>
   <div class="pinfo"><h1>${esc(p.name)}</h1><a href="#reviews" class="stars stars--link" id="prod-rating" style="margin-top:8px">${p.reviews_count > 0 ? `${stars(p.rating)}<span>${p.rating} (${p.reviews_count} تقييم)</span>` : '<span class="newtag">لا تقييمات بعد، كن أول من يقيّم</span>'}</a>
     <div class="price" style="margin-top:14px"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>
     <p class="pinfo__desc">${esc(p.description)}</p>
@@ -156,6 +156,17 @@ pages.product = async () => {
     <div class="assure">${[['truck', 'شحن لجميع المحافظات'], ['card', 'دفع أونلاين أو إنستا باي'], ['ret', 'استبدال خلال 14 يومًا']].map(([i, t]) => `<div>${ic(i)}${t}</div>`).join('')}</div></div></div>
   <section class="sec reviews" id="reviews"></section>
   <section class="sec" id="related-wrap" hidden>${head('منتجات مشابهة')}<div class="grid" id="related"></div></section></div>`;
+  /* معرض الصور: الصور المتاحة فقط، وبتتبدّل بالمرور أو الضغط على المصغّرة */
+  (async () => {
+    const all = imgList(p); if (all.length < 2) return;
+    const ok = (await Promise.all(all.map((s, i) => i === 0 ? s : new Promise(r => { const im = new Image(); im.onload = () => r(s); im.onerror = () => r(null); im.src = s; })))).filter(Boolean);
+    if (ok.length < 2) return;
+    const box = $('#pthumbs'), main = $('#pmain'); if (!box || !main) return;
+    box.innerHTML = ok.map((s, i) => `<button type="button" class="pthumb ${i ? '' : 'on'}" data-i="${i}" aria-label="صورة ${i + 1}"><img src="${esc(s)}" alt=""></button>`).join(''); box.hidden = false;
+    const pick = i => { main.src = ok[i]; $$('.pthumb', box).forEach((b, k) => b.classList.toggle('on', k === i)); };
+    box.addEventListener('click', e => { const b = e.target.closest('.pthumb'); if (b) pick(+b.dataset.i); });
+    box.addEventListener('pointerover', e => { const b = e.target.closest('.pthumb'); if (b && e.pointerType !== 'touch') pick(+b.dataset.i); });
+  })();
   if (window.KTApp.mountReviews) window.KTApp.mountReviews(p, $('#reviews'));
   let q = 1; const max = Math.min(p.stock, 20), set = v => { q = Math.max(1, Math.min(v, max || 1)); $('#qv').textContent = q; };
   $('#qm').onclick = () => set(q - 1); $('#qp').onclick = () => set(q + 1);
@@ -240,7 +251,7 @@ pages.success = () => {
     const u = P.online?.checkoutUrl;
     box = `<div class="paybox"><b>الدفع أونلاين</b><p style="margin-top:6px">${u ? 'أكمل الدفع بأمان من خلال الزر التالي.' : 'سنرسل لك رابط الدفع الآمن على رقم الموبايل.'}</p>${u ? `<a class="btn btn-primary" style="margin-top:10px" href="${esc(u)}${u.includes('?') ? '&' : '?'}order=${encodeURIComponent(no || '')}&amount=${encodeURIComponent(total || '')}">ادفع الآن</a>` : ''}</div>`;
   }
-  $('#app').innerHTML = `<div class="wrap page"><div class="card center wide" style="text-align:center"><span class="okmark">${ic('check', 'ico-lg')}</span><h1>تم استلام طلبك</h1>
+  $('#app').innerHTML = `<div class="wrap page"><div class="card center wide" style="text-align:center">${ic('st-new', 'hero-ic')}<h1>تم استلام طلبك</h1>
   <p class="page__sub">سنتواصل معك على رقم الموبايل لتأكيد الطلب وموعد التوصيل.</p>
   ${no ? `<p style="margin-top:20px;color:var(--muted);font-size:.9rem">رقم الطلب</p><p style="font-size:1.6rem;font-weight:600;color:var(--green-d)" dir="ltr">${esc(no)}</p>${total ? `<p>الإجمالي ${money(total)}</p>` : ''}` : ''}${box}
   <div class="buyrow" style="justify-content:center;margin-top:24px"><a class="btn btn-primary" href="/track.html${no ? `?no=${encodeURIComponent(no)}` : ''}">تتبع الطلب</a><a class="btn btn-ghost" href="/shop.html">متابعة التسوق</a></div></div></div>`;
@@ -248,11 +259,12 @@ pages.success = () => {
 
 /* ---------------- تتبع الطلب ---------------- */
 const STEPS = ['new', 'confirmed', 'shipping', 'delivered'];
+const STEP_IC = { new: 'st-new', confirmed: 'check', shipping: 'st-ship', delivered: 'st-done' };
 function orderCard(o) {
   const idx = STEPS.indexOf(o.status), cancelled = o.status === 'cancelled';
   return `<article class="card order"><div class="order__head"><h3 dir="ltr">${esc(o.order_no)}</h3><span class="status ${cancelled ? 'bad' : ''}">${STATUS[o.status]}</span></div>
   ${o.created_at ? `<p class="order__date">${new Date(o.created_at).toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })}</p>` : ''}
-  ${cancelled ? '' : `<ol class="steps">${STEPS.map((s, i) => `<li class="${i <= idx ? 'on' : ''}"><i></i>${STATUS[s]}</li>`).join('')}</ol>`}
+  ${cancelled ? '' : `<div class="order__now">${ic(STEP_IC[o.status] || 'box', 'now-ic')}<b>${STATUS[o.status]}</b></div><ol class="steps">${STEPS.map((s, i) => `<li class="${i <= idx ? 'on' : ''} ${i === idx ? 'cur' : ''}">${ic(STEP_IC[s], 'step-ic')}<i></i>${STATUS[s]}</li>`).join('')}</ol>`}
   <ul class="rows" style="border-top:1px solid var(--line);padding-top:12px">${(o.items || []).map(i => `<li style="display:flex;justify-content:space-between;gap:12px"><span>${esc(i.name)} <span style="color:var(--muted)">x${i.qty}</span></span><span>${money(i.price * i.qty)}</span></li>`).join('')}</ul>
   <dl class="rows"><div><dt>الدفع</dt><dd>${PAYNAME[o.payment_method] || ''}</dd></div><div><dt>الشحن</dt><dd>${+o.shipping ? money(o.shipping) : 'مجاني'}</dd></div><div class="tot"><dt>الإجمالي</dt><dd>${money(o.total)}</dd></div></dl>
   <p style="font-size:.82rem;color:var(--muted)">${esc(o.city)} - ${esc(o.address)}</p></article>`;

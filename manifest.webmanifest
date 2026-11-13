@@ -1,0 +1,24 @@
+{
+  "name": "Kitchenly | أدوات ذكية لمطبخ أنظف",
+  "short_name": "Kitchenly",
+  "description": "متجر أدوات المطبخ والتنظيف: إسفنج وفرش ومنظمات ومماسح، شحن لجميع محافظات مصر.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "background_color": "#fef7ed",
+  "theme_color": "#2f7d4a",
+  "icons": [
+    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "العروض", "url": "/offers/", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "السلة", "url": "/cart.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "تتبع طلبك", "url": "/track.html", "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

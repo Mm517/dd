@@ -33,6 +33,7 @@ const ICONS = {
   home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/>',
   grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>',
   chevL: '<path d="m15 6-6 6 6 6"/>',
+  chevD: '<path d="m6 9 6 6 6-6"/>',
   sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16v4M17 18h4"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
   star: '<path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/>',
@@ -55,7 +56,7 @@ const ICONS = {
 };
 /* أيقونات صور (3D) بدل الـ SVG للأقسام والعروض وحالات الطلب */
 const IMGDIR = '/assets/img/icons/';
-const ICONIMG = { offers: 'offers', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us' };
+const ICONIMG = { offers: 'offers', yours: 'yours', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us' };
 const ic = (n, c = 'ico') => ICONIMG[n] ? `<img class="${c} ico-img" src="${IMGDIR}${ICONIMG[n]}.png" alt="" loading="lazy" decoding="async">` : `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
 const stars = r => { const n = Math.round(r); return `<span class="stars" aria-label="تقييم ${r} من 5">${Array.from({ length: 5 }, (_, i) => `<svg class="${i < n ? 'on' : ''}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`).join('')}</span>`; };
 
@@ -165,6 +166,45 @@ async function callAI(payload) {
   return { label: out.label || '', message: out.message || '', exact: out.exact.map(s => by[s]).filter(Boolean), similar: out.similar.map(s => by[s]).filter(Boolean) };
 }
 const aiText = q => callAI({ mode: 'text', q });
+
+/* ---------- فهم اهتمام العميل: بحثه + اللي شاهده + سلته + طلباته (محفوظ على جهازه فقط) ---------- */
+const Discover = (() => {
+  const rd = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v ?? d; } catch { return d; } };
+  const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* التخزين محجوب */ } };
+  const shuffle = a => { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+  const addSearch = q => { q = String(q || '').trim().slice(0, 60); if (norm(q).length < 2) return; wr('kt_searches', [q, ...rd('kt_searches', []).filter(x => x !== q)].slice(0, 10)); };
+  const addCat = slug => { if (slug) wr('kt_catvisits', [slug, ...rd('kt_catvisits', [])].slice(0, 10)); };
+  const searches = () => rd('kt_searches', []);
+  /* يبني صورة لاهتمام العميل من منتجات المتجر الحقيقية فقط */
+  async function profile() {
+    const all = await loadAll(), by = Object.fromEntries(all.map(p => [p.slug, p]));
+    const prodW = new Map(), catW = new Map(), bump = (m, k, w) => m.set(k, (m.get(k) || 0) + w);
+    const queries = [], bought = new Set();
+    searches().slice(0, 6).forEach((q, i) => {
+      const { exact } = searchLocal(q, all); if (!exact.length) return;
+      const w = Math.max(2, 7 - i), items = exact.slice(0, 8);
+      queries.push({ q, items });
+      items.forEach(p => { bump(prodW, p.slug, w); if (p.category?.slug) bump(catW, p.category.slug, w * .6); });
+    });
+    const sig = (slug, w) => { const p = by[slug]; if (!p) return; bump(prodW, slug, w); if (p.category?.slug) bump(catW, p.category.slug, w); };
+    rd('kt_recent', []).forEach((s, i) => sig(s, Math.max(1, 3 - i * .3)));
+    Cart.read().forEach(i => sig(i.slug, 3));
+    rd('kt_catvisits', []).slice(0, 6).forEach((c, i) => bump(catW, c, Math.max(1, 3 - i * .4)));
+    try {
+      const ses = SESSION || await getSession();
+      if (ses) { const { data } = await sb.from('kt_orders').select('items').eq('user_id', ses.user.id).limit(30); (data || []).forEach(o => (o.items || []).forEach(i => { sig(i.slug, 2); bought.add(i.slug); })); }
+    } catch { /* بدون اتصال */ }
+    return { all, by, prodW, catW, queries, bought, known: prodW.size > 0 || catW.size > 0 };
+  }
+  /* ترتيب حسب الاهتمام + قدر بسيط من العشوائية عشان الصفحة تتغير كل مرة */
+  const rank = (list, prof, jitter = 1.4) => list.map(p => ({ p, s: (prof.prodW.get(p.slug) || 0) + (prof.catW.get(p.category?.slug) || 0) * .5 + Math.random() * jitter })).sort((a, b) => b.s - a.s).map(r => r.p);
+  return { shuffle, addSearch, addCat, searches, profile, rank };
+})();
+
+/* لوجوهات وسائل الدفع */
+const PAYIMG = { instapay: ['instapay'], online: ['paymob', 'visa'] };
+const PAYALT = { instapay: 'InstaPay', paymob: 'Paymob', visa: 'Visa' };
+const payLogos = (keys, cls = '') => `<span class="paylogos ${cls}">${keys.map(k => `<img src="/assets/img/pay/${k}.webp" alt="${PAYALT[k]}" loading="lazy" decoding="async">`).join('')}</span>`;
 function fileToJpeg(file, max = 1024) {
   return new Promise((resolve, reject) => {
     const img = new Image(), url = URL.createObjectURL(file);
@@ -211,13 +251,37 @@ function renderHeader() {
       <a href="/track.html" class="hdr__link" aria-label="تتبع طلبك">${ic('box')}<span>تتبع طلبك</span></a>
       <a href="${SESSION ? '/profile' : '/auth.html'}" class="hdr__link" aria-label="${SESSION ? 'حسابي' : 'تسجيل الدخول'}">${ic('user')}<span>${SESSION ? 'حسابي' : 'دخول'}</span></a>
       <a href="/cart.html" class="hdr__link" aria-label="السلة">${ic('cart')}<span>السلة</span><b class="badge" data-cart-count hidden>0</b></a></div></div>
-    <nav class="catnav" aria-label="الأقسام"><div class="catnav__in wrap"><a href="/offers/" class="deal" ${page === 'offers' ? 'aria-current="true"' : ''}>العروض</a><a href="/yours-offer" class="mine" ${page === 'yours' ? 'aria-current="true"' : ''}>عروضك</a><a href="/shop.html" ${page === 'shop' ? 'aria-current="true"' : ''}>كل المنتجات</a><span id="catnav-list" style="display:contents"></span></div></nav>
+    <nav class="catnav" aria-label="الأقسام"><div class="catnav__in wrap"><a href="/offers/" class="deal" ${page === 'offers' ? 'aria-current="true"' : ''}>العروض</a><a href="/yours-offer" class="mine" ${page === 'yours' ? 'aria-current="true"' : ''}>عروضك</a><a href="/shop.html" ${page === 'shop' ? 'aria-current="true"' : ''}>كل المنتجات</a><span id="catnav-list" style="display:contents"></span><button type="button" class="catnav__more" id="catmore" aria-expanded="false" aria-controls="catpanel">المزيد ${ic('chevD', 'ico-sm')}</button></div>
+    <div class="catpanel" id="catpanel" hidden><div class="wrap"><p class="catpanel__t">تسوّق حسب القسم</p><div class="catpanel__grid" id="catpanel-grid"></div></div></div></nav>
   </header>
   <div class="hashtag-bar"><div class="wrap"><span>في هذه الصفحة:</span><span class="hashtag" id="page-tag">${esc(TAGS[page] || '')}</span></div></div>`;
   const cur = location.pathname.match(/^\/category\/([^/]+)/)?.[1];
-  loadCats().then(list => { const el = $('#catnav-list'); if (el) el.innerHTML = list.map(x => `<a href="${curl(x.slug)}" ${cur === x.slug ? 'aria-current="true"' : ''}>${esc(x.name)}</a>`).join(''); });
+  loadCats().then(list => {
+    const el = $('#catnav-list'); if (!el) return;
+    el.innerHTML = list.map(x => `<a href="${curl(x.slug)}" class="cn" ${cur === x.slug ? 'aria-current="true"' : ''}>${esc(x.name)}</a>`).join('');
+    const tiles = [['/offers/', 'offers', 'العروض', 'on-offer'], ['/yours-offer', 'yours', 'عروضك', 'on-offer'], ...list.map(c => [curl(c.slug), c.slug, c.name, ''])];
+    $('#catpanel-grid').innerHTML = tiles.map(([h, i, n, k]) => `<a href="${h}" class="catpanel__tile ${k}"><span class="cat__ic">${ic(i)}</span><span>${esc(n)}</span></a>`).join('');
+    fitNav();
+  });
+  initNavMore();
   initSearch();
   renderTabbar(page);
+}
+
+/* شريط الأقسام بدون سكرول: اللي يتسع يظهر، وكل الأقسام في زر "المزيد" */
+function fitNav() {
+  const inner = $('.catnav__in'); if (!inner) return;
+  const links = $$('#catnav-list .cn'); links.forEach(a => { a.hidden = false; });
+  let i = links.length; while (i > 0 && inner.scrollWidth > inner.clientWidth + 1) links[--i].hidden = true;
+}
+function initNavMore() {
+  const btn = $('#catmore'), panel = $('#catpanel'); if (!btn || !panel) return;
+  const set = open => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
+  btn.addEventListener('click', e => { e.stopPropagation(); set(panel.hidden); });
+  document.addEventListener('click', e => { if (!panel.hidden && !e.target.closest('#catpanel')) set(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+  let t = null; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fitNav, 120); });
+  if (document.fonts?.ready) document.fonts.ready.then(fitNav);
 }
 
 function initSearch() {
@@ -265,7 +329,7 @@ function renderTabbar(page) {
   sh.innerHTML = `<div class="sheet__scrim" data-close-cats></div><div class="sheet__panel" role="dialog" aria-modal="true" aria-label="الأقسام"><div class="sheet__head"><h2>تسوق حسب القسم</h2><button class="icon-btn" data-close-cats aria-label="إغلاق">${ic('x')}</button></div><div id="sheet-grid" class="sheet__grid"></div></div>`;
   document.body.appendChild(sh);
   const close = () => { sh.hidden = true; document.body.classList.remove('no-scroll'); };
-  const open = async () => { sh.hidden = false; document.body.classList.add('no-scroll'); const list = await loadCats(); $('#sheet-grid').innerHTML = [['/offers/', 'offers', 'العروض'], ['/yours-offer', 'sparkle', 'عروضك'], ...list.map(c => [curl(c.slug), c.slug, c.name])].map(([h, i, n]) => `<a href="${h}" class="sheet__tile"><span class="cat__ic">${ic(i)}</span><span>${esc(n)}</span></a>`).join(''); };
+  const open = async () => { sh.hidden = false; document.body.classList.add('no-scroll'); const list = await loadCats(); $('#sheet-grid').innerHTML = [['/offers/', 'offers', 'العروض'], ['/yours-offer', 'yours', 'عروضك'], ...list.map(c => [curl(c.slug), c.slug, c.name])].map(([h, i, n]) => `<a href="${h}" class="sheet__tile"><span class="cat__ic">${ic(i)}</span><span>${esc(n)}</span></a>`).join(''); };
   document.addEventListener('click', e => { if (e.target.closest('[data-open-cats]')) open(); else if (e.target.closest('[data-close-cats]')) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sh.hidden) close(); });
 }
@@ -275,6 +339,7 @@ function renderFooter() {
   $('#site-footer').innerHTML = `<footer class="ftr"><div class="wrap"><div class="ftr__row"><a href="/" class="logo" aria-label="Kitchenly"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY</a>
   <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/contact.html', 'تواصل معنا')}</nav></div>
   <nav class="ftr__links ftr__legal" aria-label="السياسات">${l('/policy', 'سياسات المتجر')}${l('/policy#returns', 'الاستبدال والاسترجاع')}${l('/privacy', 'سياسة الخصوصية')}${l('/policy#terms', 'الشروط والأحكام')}${l('/join-us', 'انضم إلينا')}</nav>
+  <div class="ftr__pay"><span>وسائل الدفع</span>${payLogos(['instapay'], 'on-dark')}${payLogos(['paymob', 'visa'], 'on-dark')}</div>
   <p class="ftr__copy">جميع الحقوق محفوظة، Kitchenly ${new Date().getFullYear()}</p></div></footer>`;
 }
 
@@ -313,7 +378,7 @@ document.addEventListener('click', e => {
 
 const recent = slug => { try { const l = JSON.parse(localStorage.getItem('kt_recent') || '[]').filter(x => x !== slug); l.unshift(slug); localStorage.setItem('kt_recent', JSON.stringify(l.slice(0, 12))); } catch { /* التخزين محجوب */ } };
 const pages = {};
-window.KTApp = { recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
+window.KTApp = { Discover, payLogos, recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
 
 document.addEventListener('DOMContentLoaded', async () => {
   try { await getSession(); } catch { /* بدون اتصال */ }

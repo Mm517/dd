@@ -1,10 +1,10 @@
 /* Kitchenly - صفحات المتجر: الرئيسية، المنتجات، الأقسام، العروض، المنتج، السلة، الدفع، التتبع. */
 (() => {
 'use strict';
-const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag } = window.KTApp;
+const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, Discover: D, payLogos } = window.KTApp;
 
 const head = (title, sub, href, label = 'عرض الكل') => `<div class="sec__head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${href ? `<a href="${href}" class="sec__all">${label} ${ic('chevL', 'ico-sm')}</a>` : ''}</div>`;
-const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><select id="sort" class="field"><option value="new">الأحدث</option><option value="popular">الأكثر تقييمًا</option><option value="price-asc">السعر من الأقل</option><option value="price-desc">السعر من الأعلى</option><option value="discount">الأعلى خصمًا</option></select></div>`;
+const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><select id="sort" class="field"><option value="for-you">مختارة لك</option><option value="new">الأحدث</option><option value="popular">الأكثر تقييمًا</option><option value="price-asc">السعر من الأقل</option><option value="price-desc">السعر من الأعلى</option><option value="discount">الأعلى خصمًا</option></select></div>`;
 const sortList = (list, s) => { const a = [...list]; if (s === 'price-asc') a.sort((x, y) => x.price - y.price); else if (s === 'price-desc') a.sort((x, y) => y.price - x.price); else if (s === 'popular') a.sort((x, y) => y.reviews_count - x.reviews_count); else if (s === 'discount') a.sort((x, y) => discount(y) - discount(x)); return a; };
 
 /* ---------------- الرئيسية ---------------- */
@@ -32,24 +32,52 @@ function bindNews() {
   });
 }
 
+/* الرئيسية على طريقة أمازون: كروت مربعة لكل قسم (4 منتجات حقيقية) + عروض + مقترحات من بحثك ومشاهداتك. المنتجات بتتبدّل كل زيارة. */
 pages.home = async () => {
-  const b = K.banner;
+  const b = K.banner, qsk = n => Array.from({ length: n }, () => '<div class="skel" style="height:360px"></div>').join('');
   $('#app').innerHTML = `<div class="wrap">
     <a class="banner" href="${esc(b.href)}" aria-label="${esc(b.alt)}"><picture>${b.wide ? `<source media="(min-width:600px)" srcset="${esc(b.wide)}">` : ''}<img src="${esc(b.image)}" alt="${esc(b.alt)}" fetchpriority="high"></picture></a>
     <section class="sec sec--cats" id="cats-sec"><div class="sec__head"><h2>أقسام المتجر</h2></div><div class="cats" id="cats">${Array.from({ length: 8 }, () => '<div class="skel" style="height:84px"></div>').join('')}</div></section>
-    <section class="sec" id="deals-sec" hidden>${head('عروض اليوم', 'خصومات حقيقية على منتجات مختارة', '/offers/')}<div class="grid" id="deals"></div></section>
-    <section class="sec" id="best-sec">${head('الأكثر مبيعًا', 'منتجات يختارها عملاؤنا أكثر', '/shop.html?sort=popular')}<div class="grid" id="best">${skeletons(8)}</div></section>
+    <div class="qgrid" id="q1">${qsk(4)}</div>
+    <section class="sec" id="deals-sec" hidden>${head('عروض اليوم', 'خصومات حقيقية على منتجات المتجر، وتتبدّل كل زيارة', '/offers/')}<div class="grid grid--deals" id="deals"></div></section>
+    <div class="qgrid" id="q2" hidden></div>
+    <div id="because"></div>
+    <section class="sec" id="best-sec" hidden>${head('الأكثر طلبًا', 'منتجات يختارها عملاؤنا أكثر', '/shop.html?sort=popular')}<div class="grid" id="best"></div></section>
     <section class="sec" id="recent-sec" hidden>${head('شاهدتها مؤخرًا')}<div class="grid" id="recent"></div></section>
     ${newsBox()}</div>`;
   bindNews();
-  const recentSlugs = (() => { try { return JSON.parse(localStorage.getItem('kt_recent') || '[]').slice(0, 8); } catch { return []; } })();
-  const [cats, best, sale, rec] = await Promise.allSettled([loadCats(), db.products({ featured: true, limit: 8, sort: 'popular' }), db.products({ sale: true, sort: 'popular' }), recentSlugs.length ? db.bySlugs(recentSlugs) : Promise.resolve([])]);
+
+  let cats = [], prof = null;
+  try { [cats, prof] = await Promise.all([loadCats(), D.profile()]); } catch (e) { console.error(e); }
   const tile = (href, icon, name, cls = '') => `<a href="${href}" class="cat ${cls}"><span class="cat__ic">${ic(icon)}</span><span>${esc(name)}</span></a>`;
-  const saleList = sale.status === 'fulfilled' ? sale.value : [];
-  $('#cats').innerHTML = cats.status === 'fulfilled' && cats.value.length ? cats.value.map(c => tile(curl(c.slug), c.slug, c.name)).join('') + tile('/offers/', 'offers', 'العروض', 'cat--offers') + tile('/yours-offer', 'sparkle', 'عروضك', 'cat--offers') : errorBox();
-  if (saleList.length) { $('#deals-sec').hidden = false; $('#deals').innerHTML = [...saleList].sort((a, c) => discount(c) - discount(a)).slice(0, 8).map(card).join(''); }
-  $('#best').innerHTML = best.status === 'fulfilled' ? (best.value.length ? best.value.map(card).join('') : emptyBox('لا توجد منتجات حاليًا.')) : errorBox();
-  if (rec.status === 'fulfilled' && rec.value.length) { const l = [...rec.value].sort((a, c) => recentSlugs.indexOf(a.slug) - recentSlugs.indexOf(c.slug)); $('#recent-sec').hidden = false; $('#recent').innerHTML = l.map(card).join(''); }
+  $('#cats').innerHTML = cats.length ? cats.map(c => tile(curl(c.slug), c.slug, c.name)).join('') + tile('/offers/', 'offers', 'العروض', 'cat--offers') + tile('/yours-offer', 'yours', 'عروضك', 'cat--offers') : errorBox();
+  if (!prof || !prof.all.length) { $('#q1').innerHTML = errorBox(); return; }
+
+  const all = prof.all, inStock = all.filter(p => p.stock > 0), sale = inStock.filter(p => p.old_price > p.price);
+  const pick = (list, n) => D.shuffle(list).slice(0, n);
+  const qtile = p => `<a class="qtile" href="${purl(p)}"><span class="qtile__img"><img src="${esc(imgSrc(p))}" alt="" loading="lazy">${discount(p) ? `<i class="qtile__off">-${discount(p)}%</i>` : ''}</span><span class="qtile__cap">${esc(p.name)}</span></a>`;
+  const quad = (title, sub, list, href, label, cls = '') => list.length ? `<section class="qcard ${cls}"><h2>${title}</h2>${sub ? `<p class="qcard__sub">${sub}</p>` : ''}<div class="qcard__grid n${Math.min(list.length, 4)}">${list.slice(0, 4).map(qtile).join('')}</div><a class="qcard__more" href="${href}">${label}</a></section>` : '';
+
+  /* كروت الصف الأول: عروض + مختارة لك + أقسام */
+  const topDisc = [...sale].sort((x, y) => discount(y) - discount(x)).slice(0, 8), maxOff = topDisc.length ? discount(topDisc[0]) : 0;
+  const dealsCard = quad('عروض اليوم', maxOff ? `خصم يصل إلى ${maxOff}%` : '', pick(topDisc, 4), '/offers/', 'شاهد كل العروض', 'qcard--deal');
+  const mine = prof.known ? D.rank(inStock, prof).slice(0, 4) : pick([...inStock].sort((x, y) => y.reviews_count - x.reviews_count).slice(0, 8), 4);
+  const mineCard = quad(prof.known ? 'مختارة لك' : 'الأكثر طلبًا', prof.known ? 'حسب اللي بتدور عليه وبتتصفحه' : 'منتجات يحبها عملاؤنا', mine, prof.known ? '/yours-offer' : '/shop.html?sort=popular', prof.known ? 'كل المقترحات' : 'تصفح المزيد', 'qcard--mine');
+  const catCards = D.shuffle(cats).map(c => quad(esc(c.name), '', pick(all.filter(p => p.category?.slug === c.slug), 4), curl(c.slug), 'تسوّق القسم')).filter(Boolean);
+  $('#q1').innerHTML = [dealsCard, mineCard, ...catCards.slice(0, 2)].filter(Boolean).join('');
+  const rest = catCards.slice(2); if (rest.length) { $('#q2').hidden = false; $('#q2').innerHTML = rest.join(''); }
+
+  /* شبكة العروض: كروت منتجات عليها خصم حقيقي */
+  if (sale.length) { $('#deals-sec').hidden = false; $('#deals').innerHTML = pick([...sale].sort((x, y) => discount(y) - discount(x)).slice(0, 12), 8).map(card).join(''); }
+
+  /* لأنك بحثت عن ... : منتجات حقيقية مطابقة لبحثك */
+  $('#because').innerHTML = prof.queries.slice(0, 2).map(({ q, items }) => `<section class="sec">${head(`لأنك بحثت عن «${esc(q)}»`, 'منتجات من المتجر مطابقة لبحثك', `/shop.html?q=${encodeURIComponent(q)}`, 'كل النتائج')}<div class="grid">${items.slice(0, 4).map(card).join('')}</div></section>`).join('');
+
+  const bestList = pick([...inStock].sort((x, y) => y.reviews_count - x.reviews_count).slice(0, 12), 8);
+  if (bestList.length) { $('#best-sec').hidden = false; $('#best').innerHTML = bestList.map(card).join(''); }
+  const recentSlugs = (() => { try { return JSON.parse(localStorage.getItem('kt_recent') || '[]').slice(0, 8); } catch { return []; } })();
+  const recentList = recentSlugs.map(sl => prof.by[sl]).filter(Boolean);
+  if (recentList.length) { $('#recent-sec').hidden = false; $('#recent').innerHTML = recentList.map(card).join(''); }
 };
 
 /* ---------------- صفحات القوائم: الأقسام والعروض ---------------- */
@@ -67,9 +95,10 @@ pages.category = async () => {
   document.title = `${cur.name} | Kitchenly`; setHashtag(`#${cur.name.trim().replace(/\s+/g, '_')}`);
   listShell({ title: esc(cur.name), sub: 'كل منتجات هذا القسم', icon: cur.slug, crumbs: `<a href="/shop.html">المنتجات</a><span>/</span><span>${esc(cur.name)}</span>` });
   $('#chips').innerHTML = chipsRow(cats, slug);
-  let list = [], s = 'new';
-  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.'); };
-  try { list = await db.products({ cat: slug }); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
+  D.addCat(slug);
+  let list = [], fy = [], s = 'for-you'; $('#sort').value = s;
+  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.'); };
+  try { list = await db.products({ cat: slug }); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
 
@@ -87,7 +116,7 @@ const aiBox = (msg, thumb) => `<div class="ai-box">${thumb ? `<img class="ai-thu
 
 pages.shop = async () => {
   const q = params.get('q') || '', isImg = params.get('img') === '1';
-  let sort = params.get('sort') || 'new';
+  let sort = params.get('sort') || 'for-you';
   const cats = await loadCats();
   const title = isImg ? 'نتائج البحث بالصورة' : q ? `نتائج البحث عن "${esc(q)}"` : 'كل المنتجات';
   setHashtag(isImg ? '#بحث_بالصورة' : q ? '#نتائج_البحث' : '#كل_منتجات_المطبخ');
@@ -109,6 +138,7 @@ pages.shop = async () => {
   if (q) {
     grid.innerHTML = skeletons(4);
     const all = await loadAll(), { exact, partial } = searchLocal(q, all);
+    if (exact.length || partial.length) D.addSearch(q);
     count.textContent = exact.length ? `${exact.length} نتيجة مطابقة` : '';
     grid.innerHTML = exact.length ? exact.map(card).join('') : '';
     if (!exact.length) grid.remove();
@@ -128,10 +158,10 @@ pages.shop = async () => {
     return;
   }
 
-  let list = [];
-  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? sortList(list, sort).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.'); };
+  let list = [], fy = [];
+  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.'); };
   $('#sort').value = sort;
-  try { list = await db.products(); draw(); } catch (e) { console.error(e); grid.innerHTML = errorBox(); }
+  try { list = await db.products(); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); grid.innerHTML = errorBox(); }
   $('#sort').onchange = e => { sort = e.target.value; draw(); };
 };
 
@@ -221,7 +251,7 @@ pages.checkout = async () => {
       <div><label class="lbl" for="city">المحافظة</label><select class="field" id="city" name="city" required><option value="">اختر المحافظة</option>${GOV.map(g => `<option>${g}</option>`).join('')}</select></div>
       <div><label class="lbl" for="address">العنوان بالتفصيل</label><input class="field" id="address" name="address" required maxlength="300" autocomplete="street-address" placeholder="المدينة أو القرية، الشارع، رقم المبنى"></div></div>
       <div><label class="lbl" for="notes">ملاحظات (اختياري)</label><textarea class="field" id="notes" name="notes" rows="2" maxlength="300"></textarea></div>
-      <fieldset style="border:0;padding:0;margin:0"><legend class="lbl">طريقة الدفع</legend><div class="pay">${methods.map(([k, v]) => `<label><input type="radio" name="payment" value="${k}" ${k === first ? 'checked' : ''}><span><b>${esc(v.label)}</b><small>${esc(v.hint)}</small></span></label>`).join('')}</div></fieldset>
+      <fieldset style="border:0;padding:0;margin:0"><legend class="lbl">طريقة الدفع</legend><div class="pay">${methods.map(([k, v]) => `<label><input type="radio" name="payment" value="${k}" ${k === first ? 'checked' : ''}><span><b>${esc(v.label)}</b><small>${esc(v.hint)}</small></span>${payLogos(k === 'instapay' ? ['instapay'] : ['paymob', 'visa'], 'pay__logos')}</label>`).join('')}</div></fieldset>
       <p id="co-err" class="alert" role="alert" hidden></p></div>
     <aside class="card aside"><h2>طلبك</h2><ul class="mini" style="display:grid;gap:10px">${items.map(i => `<li><img src="${esc(imgSrc(i))}" alt=""><span class="n">${esc(i.name)} <span style="color:var(--muted)">x${i.qty}</span></span><b>${money(i.price * i.qty)}</b></li>`).join('')}</ul>
       <dl class="rows" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><div><dt>المجموع الفرعي</dt><dd>${money(sub)}</dd></div><div><dt>الشحن</dt><dd>${sh ? money(sh) : 'مجاني'}</dd></div><div class="tot"><dt>الإجمالي</dt><dd>${money(sub + sh)}</dd></div></dl>
@@ -246,10 +276,10 @@ pages.success = () => {
   const P = K.payments || {}; let box = '';
   if (pay === 'instapay') {
     const to = P.instapay?.handle || P.instapay?.phone;
-    box = `<div class="paybox"><b>الدفع عبر إنستا باي</b><p style="margin-top:6px">${to ? `حوّل ${money(total)} إلى: <b dir="ltr">${esc(to)}</b> واكتب رقم الطلب في الملاحظات.` : 'سنرسل لك بيانات التحويل على رقم الموبايل خلال دقائق.'}</p></div>`;
+    box = `<div class="paybox"><b>الدفع عبر إنستا باي</b>${payLogos(['instapay'])}<p style="margin-top:6px">${to ? `حوّل ${money(total)} إلى: <b dir="ltr">${esc(to)}</b> واكتب رقم الطلب في الملاحظات.` : 'سنرسل لك بيانات التحويل على رقم الموبايل خلال دقائق.'}</p></div>`;
   } else if (pay === 'online') {
     const u = P.online?.checkoutUrl;
-    box = `<div class="paybox"><b>الدفع أونلاين</b><p style="margin-top:6px">${u ? 'أكمل الدفع بأمان من خلال الزر التالي.' : 'سنرسل لك رابط الدفع الآمن على رقم الموبايل.'}</p>${u ? `<a class="btn btn-primary" style="margin-top:10px" href="${esc(u)}${u.includes('?') ? '&' : '?'}order=${encodeURIComponent(no || '')}&amount=${encodeURIComponent(total || '')}">ادفع الآن</a>` : ''}</div>`;
+    box = `<div class="paybox"><b>الدفع أونلاين</b>${payLogos(['paymob', 'visa'])}<p style="margin-top:6px">${u ? 'أكمل الدفع بأمان من خلال الزر التالي.' : 'سنرسل لك رابط الدفع الآمن على رقم الموبايل.'}</p>${u ? `<a class="btn btn-primary" style="margin-top:10px" href="${esc(u)}${u.includes('?') ? '&' : '?'}order=${encodeURIComponent(no || '')}&amount=${encodeURIComponent(total || '')}">ادفع الآن</a>` : ''}</div>`;
   }
   $('#app').innerHTML = `<div class="wrap page"><div class="card center wide" style="text-align:center">${ic('st-new', 'hero-ic')}<h1>تم استلام طلبك</h1>
   <p class="page__sub">سنتواصل معك على رقم الموبايل لتأكيد الطلب وموعد التوصيل.</p>
@@ -273,7 +303,7 @@ window.KTApp.orderCard = orderCard;
 const lastOrder = () => { try { return JSON.parse(localStorage.getItem('kt_last') || 'null'); } catch { return null; } };
 pages.track = async () => {
   const no = (params.get('no') || '').trim().toUpperCase();
-  $('#app').innerHTML = `<div class="wrap page"><div style="max-width:680px;margin-inline:auto"><h1>تتبع طلبك</h1><p class="page__sub" id="trk-sub">جارٍ البحث عن طلبك...</p>
+  $('#app').innerHTML = `<div class="wrap page"><div style="max-width:680px;margin-inline:auto"><div class="trk__hero"><img src="/assets/img/pages/track-hero.webp" alt="" width="120" height="120"><div><h1>تتبع طلبك</h1><p class="page__sub" id="trk-sub">جارٍ البحث عن طلبك...</p></div></div>
   <div id="trk-pick" class="trk__pick"></div><div id="tr-out" style="margin-top:16px" aria-live="polite"><div class="skel" style="height:160px"></div></div>
   <details class="card trk__manual" id="trk-manual"><summary>تتبّع طلب آخر برقم الطلب ورقم الموبايل</summary>
   <form id="tr" class="form-grid two" style="padding:0 18px 18px"><div><label class="lbl" for="no">رقم الطلب</label><input class="field" id="no" required dir="ltr" placeholder="KT-250101-12345" value="${esc(no)}"></div><div><label class="lbl" for="ph">رقم الموبايل</label><input class="field" id="ph" required inputmode="numeric" maxlength="11" dir="ltr" placeholder="01xxxxxxxxx"></div><button class="btn btn-primary" style="grid-column:1/-1">بحث</button></form></details></div></div>`;
@@ -296,7 +326,7 @@ pages.track = async () => {
     if (mine.length > 1) pick.innerHTML = `<span style="color:var(--muted);font-size:.85rem">طلباتك:</span>` + mine.map(o => `<a class="chip" href="/track.html?no=${encodeURIComponent(o.order_no)}" aria-current="${o.order_no === target.order_no}" dir="ltr">${esc(o.order_no)}</a>`).join('');
   } else {
     sub.textContent = no ? (window.KTApp.session ? 'لم نجد هذا الطلب على حسابك. اكتب رقم الموبايل الذي استخدمته عند الشراء.' : 'اكتب رقم الموبايل الذي استخدمته عند الشراء لعرض الطلب.') : mine.length === 0 && window.KTApp.session ? 'لا توجد طلبات على حسابك بعد.' : 'اكتب رقم الطلب ورقم الموبايل الذي استخدمته عند الشراء.';
-    out.innerHTML = ''; manual.open = true;
+    out.innerHTML = '<div class="trk__empty"><img src="/assets/img/pages/track-pin.webp" alt="" loading="lazy"></div>'; manual.open = true;
     if (!window.KTApp.session && !no) pick.innerHTML = `<a class="link-btn" href="/auth.html?next=/track.html">سجّل دخولك لتظهر لك طلباتك تلقائيًا</a>`;
   }
   $('#tr').addEventListener('submit', async e => {

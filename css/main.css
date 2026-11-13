@@ -83,7 +83,7 @@ ul,ol{padding:0;list-style:none}
 .badge{position:absolute;top:0;inset-inline-start:0;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:.7rem;display:grid;place-items:center;padding:0 4px;font-weight:600}
 .catnav{border-top:1px solid var(--line);display:none}
 @media(min-width:900px){.catnav{display:block}}
-.catnav__in{display:flex;gap:4px;align-items:center;padding-block:4px;overflow-x:auto}
+.catnav__in{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;padding-block:4px;overflow:hidden}
 .catnav a{white-space:nowrap;padding:6px 12px;border-radius:8px;font-size:.9rem;color:var(--muted)}
 .catnav a:hover,.catnav a[aria-current="true"]{background:var(--green-soft);color:var(--green-d)}
 .catnav a.deal{color:var(--red);font-weight:500}
@@ -443,3 +443,100 @@ dialog form{padding:22px;display:grid;gap:14px;max-height:88vh;overflow:auto}
 .pthumb{flex:none;width:68px;height:68px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px;cursor:pointer;transition:.15s}
 .pthumb img{width:100%;height:100%;object-fit:contain}
 .pthumb.on,.pthumb:hover{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}
+
+
+/* =====================================================================
+   شريط الأقسام: بدون سكرول + زر "المزيد"
+   ===================================================================== */
+.catnav{position:relative}
+.catnav a[hidden]{display:none}
+.catnav__more{margin-inline-start:auto;flex:none;display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:8px;font-size:.9rem;font-weight:500;color:var(--green-d);background:var(--green-soft);white-space:nowrap}
+.catnav__more:hover{background:#dcece1}
+.catnav__more .ico-sm{transition:transform .2s}
+.catnav__more[aria-expanded="true"] .ico-sm{transform:rotate(180deg)}
+.catpanel{position:absolute;inset-inline:0;top:100%;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 18px 30px rgba(31,42,36,.14);z-index:45;padding-block:16px 20px}
+.catpanel[hidden]{display:none}
+.catpanel__t{font-weight:600;margin-bottom:10px}
+.catpanel__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.catnav .catpanel__tile{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font-size:.92rem;color:var(--ink);white-space:normal}
+.catnav .catpanel__tile:hover{border-color:var(--green);background:var(--green-soft);color:var(--green-d)}
+.catnav .catpanel__tile.on-offer{color:#9a6b00}
+.catpanel__tile .cat__ic{width:42px;height:42px;flex:none}
+
+/* =====================================================================
+   الرئيسية على طريقة أمازون: كروت مربعة لكل قسم + عروض
+   ===================================================================== */
+.qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px}
+@media(min-width:1000px){.qgrid{grid-template-columns:repeat(4,1fr);gap:16px}}
+.qcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;min-width:0;box-shadow:0 1px 2px rgba(31,42,36,.04);transition:box-shadow .15s,transform .15s}
+.qcard:hover{box-shadow:var(--shadow)}
+@media(min-width:700px){.qcard{padding:16px}}
+.qcard h2{font-size:1.02rem;font-weight:600;line-height:1.35}
+.qcard__sub{color:var(--muted);font-size:.78rem;margin-top:2px}
+.qcard__grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}
+@media(min-width:700px){.qcard__grid{gap:10px}}
+.qcard__grid.n1{grid-template-columns:1fr}
+.qtile{display:block;min-width:0}
+.qtile__img{position:relative;display:block;aspect-ratio:1;background:#fafbf8;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.qtile__img img{width:100%;height:100%;object-fit:contain;padding:8px;transition:transform .25s}
+.qtile:hover .qtile__img img{transform:scale(1.07)}
+.qtile__off{position:absolute;top:6px;inset-inline-start:6px;background:var(--red);color:#fff;font-style:normal;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:5px}
+.qtile__cap{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.76rem;margin-top:5px;line-height:1.4;color:#3d4a43}
+.qtile:hover .qtile__cap{color:var(--green-d)}
+.qcard__more{margin-top:auto;color:var(--green-d);font-size:.86rem;font-weight:500}
+.qcard__more:hover{text-decoration:underline}
+.qcard--deal{border-color:#f0c9c5;background:linear-gradient(#fff4f2,#fff 45%)}
+.qcard--deal h2{color:var(--red)}
+.qcard--deal .qcard__more{color:var(--red)}
+.qcard--mine{border-color:#cfe3d5;background:linear-gradient(var(--green-soft),#fff 45%)}
+.grid--deals .pcard{border-color:#f0c9c5}
+.grid--deals .pcard__off{font-size:.86rem;padding:3px 11px;border-radius:7px;box-shadow:0 2px 6px rgba(179,55,43,.3)}
+.grid--deals .price b{color:var(--red)}
+.cat__ic--lg{width:84px!important;height:84px!important;border-radius:20px!important;overflow:hidden;background:transparent!important}
+.cat__ic--lg .ico-img{width:100%!important;height:100%!important;object-fit:cover;border-radius:20px}
+
+/* =====================================================================
+   وسائل الدفع
+   ===================================================================== */
+.paylogos{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.paylogos img{height:26px;width:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 9px;object-fit:contain}
+.paylogos.on-dark img{border-color:transparent}
+.pay label .pay__logos{margin-inline-start:auto}
+.pay label .pay__logos img{height:22px;padding:3px 7px}
+.paybox .paylogos{display:flex;margin-top:8px}
+.ftr__pay{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:18px;font-size:.84rem;opacity:.95}
+
+/* =====================================================================
+   صفحة السياسات: صورة لكل بند
+   ===================================================================== */
+.legal{max-width:920px}
+.legal__row{display:grid;gap:16px;align-items:center}
+@media(min-width:720px){.legal__row.has-media{grid-template-columns:1fr 210px;gap:28px}}
+.legal__media{display:grid;place-items:center;background:var(--green-soft);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;width:100%;max-width:230px;justify-self:center}
+.legal__media img{display:block;width:100%;height:auto}
+.legal__media--pay{padding:18px;gap:12px;background:#fff;align-content:center}
+.legal__media--pay .paylogos{justify-content:center}
+.legal__media--pay .paylogos img{height:30px}
+
+/* =====================================================================
+   تتبع الطلب
+   ===================================================================== */
+.trk__hero{display:flex;gap:16px;align-items:center;margin-bottom:6px}
+.trk__hero img{width:96px;height:96px;border-radius:20px;object-fit:cover;flex:none;box-shadow:var(--shadow)}
+.trk__empty{display:grid;place-items:center;padding:8px}
+.trk__empty img{width:min(240px,70%);border-radius:var(--r)}
+
+/* =====================================================================
+   تسجيل الدخول: خلفية صورة مموّهة (blur)
+   ===================================================================== */
+html{background:var(--bg)}
+body[data-page="auth"]{background:transparent;isolation:isolate}
+body[data-page="auth"]::before{content:"";position:fixed;inset:-40px;z-index:-1;background:linear-gradient(rgba(247,248,244,.35),rgba(247,248,244,.35)),url(/assets/img/pages/login-bg.webp) center/cover no-repeat;filter:blur(16px) saturate(1.1)}
+body[data-page="auth"] .center{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border-color:rgba(255,255,255,.65);box-shadow:0 14px 44px rgba(31,42,36,.2)}
+body[data-page="auth"] .tabs{background:rgba(255,255,255,.55)}
+@supports not (backdrop-filter:blur(1px)){body[data-page="auth"] .center{background:rgba(255,255,255,.94)}}
+
+/* تفاصيل أخيرة */
+.pcard__off,.qtile__off{direction:ltr;unicode-bidi:isolate}
+.qcard__grid.n1{grid-template-columns:minmax(0,72%);justify-content:center}
+.qcard__grid.n2{align-content:start}

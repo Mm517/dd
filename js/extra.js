@@ -153,7 +153,7 @@ pages.myorders = async () => {
   const draw = () => {
     const f = FILTERS.find(x => x[0] === cur)[2], list = orders.filter(f);
     body.innerHTML = `<div class="chips-row">${FILTERS.map(([k, t, fn]) => `<button class="chip" data-f="${k}" aria-current="${k === cur}">${t} (${orders.filter(fn).length})</button>`).join('')}</div>
-    <div style="display:grid;gap:16px;margin-top:16px">${list.length ? list.map(o => `<div class="ordwrap">${A.orderCard(o)}<div class="ordwrap__act"><a class="btn btn-primary btn-sm" href="/track.html?no=${encodeURIComponent(o.order_no)}">${ic('box', 'ico-sm')}تتبّع الطلب</a>${o.status === 'delivered' ? '<a class="btn btn-ghost btn-sm" href="/profile/my-reviews">قيّم منتجاتك</a>' : ''}</div></div>`).join('') : emptyBox(orders.length ? 'لا توجد طلبات في هذا التصنيف.' : 'لا توجد طلبات على حسابك بعد.')}</div>`;
+    <div style="display:grid;gap:16px;margin-top:16px">${list.length ? list.map(o => `<div class="ordwrap">${A.orderCard(o)}<div class="ordwrap__act"><a class="btn btn-primary btn-sm" href="/track.html?no=${encodeURIComponent(o.order_no)}">${ic('box', 'ico-sm')}تتبّع الطلب</a>${o.status === 'delivered' ? '<a class="btn btn-ghost btn-sm" href="/profile/my-reviews">قيّم منتجاتك</a>' : ''}${['new', 'confirmed'].includes(o.status) ? '<a class="btn btn-ghost btn-sm" href="/policy#cancel">إلغاء الطلب</a>' : ''}</div></div>`).join('') : emptyBox(orders.length ? 'لا توجد طلبات في هذا التصنيف.' : 'لا توجد طلبات على حسابك بعد.')}</div>`;
     $$('[data-f]', body).forEach(b => b.onclick = () => { cur = b.dataset.f; draw(); });
   };
   draw();
@@ -187,7 +187,7 @@ pages.myreviews = async () => {
    ===================================================================== */
 pages.yours = async () => {
   $('#app').innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><span>عروضك</span></nav>
-  <div style="display:flex;gap:14px;align-items:center"><span class="cat__ic">${ic("sparkle")}</span><div><h1>عروضك</h1><p class="page__sub" id="y-sub">بنجهّز لك أنسب العروض...</p></div></div>
+  <div style="display:flex;gap:14px;align-items:center"><span class="cat__ic cat__ic--lg">${ic("yours")}</span><div><h1>عروضك</h1><p class="page__sub" id="y-sub">بنجهّز لك أنسب العروض...</p></div></div>
   <div id="y-why" class="chips-row" style="margin-top:16px"></div><div id="y-body" style="margin-top:8px"><div class="grid" style="margin-top:12px">${skeletons(8)}</div></div></div>`;
   const body = $('#y-body'), sub = $('#y-sub');
   try {
@@ -246,21 +246,22 @@ pages.help = () => {
 /* =====================================================================
    السياسات: /policy  و  /privacy
    ===================================================================== */
+const legalMedia = m => !m ? '' : m === 'PAY' ? `<div class="legal__media legal__media--pay">${A.payLogos(['instapay'])}${A.payLogos(['paymob', 'visa'])}</div>` : `<div class="legal__media"><img src="/assets/img/pages/${m}" alt="" loading="lazy" decoding="async"></div>`;
 const legal = (title, updated, sections) => {
   $('#app').innerHTML = `<div class="wrap page"><div class="legal"><div><h1>${title}</h1><p class="page__sub">آخر تحديث: ${updated}</p></div>
   <nav class="legal__toc card" aria-label="المحتويات">${sections.map(([id, t]) => `<a href="#${id}">${t}</a>`).join('')}</nav>
-  ${sections.map(([id, t, body]) => `<section id="${id}"><h2>${t}</h2>${body}</section>`).join('')}</div></div>`;
+  ${sections.map(([id, t, body, media]) => `<section id="${id}"><div class="legal__row ${media ? 'has-media' : ''}"><div class="legal__txt"><h2>${t}</h2>${body}</div>${legalMedia(media)}</div></section>`).join('')}</div></div>`;
   if (location.hash) $(location.hash)?.scrollIntoView();
 };
 const LAST = 'نوفمبر 2026';
 
 pages.policy = () => legal('سياسات المتجر', LAST, [
-  ['shipping', 'الشحن والتوصيل', `<p>نوصل لجميع محافظات مصر. رسوم الشحن ${money(K.shippingFee)}، ويصبح الشحن مجانيًا للطلبات بقيمة ${money(K.freeShipFrom)} أو أكثر.</p><p>نتصل بك لتأكيد الطلب قبل الشحن ونبلغك بموعد التوصيل المتوقع. تقدر تتابع حالة الطلب لحظة بلحظة من <a href="/track.html">تتبع طلبك</a>، أو من <a href="/profile/my-orders">طلباتي</a> لو عندك حساب.</p><p>يرجى التأكد من صحة العنوان ورقم الموبايل، لأن التوصيل يتم عليهما.</p>`],
-  ['payment', 'طرق الدفع', '<p>ندعم الدفع أونلاين (بطاقة بنكية أو محفظة إلكترونية) والتحويل عبر إنستا باي. يتم تأكيد الطلب بعد وصول الدفع، وتظهر لك تعليمات الدفع بعد إتمام الطلب مباشرة.</p>'],
-  ['returns', 'الاستبدال والاسترجاع', '<p>يمكنك طلب استبدال المنتج خلال 14 يومًا من الاستلام بشرط أن يكون بحالته الأصلية وغير مستخدم، ومعه الغلاف أو العبوة قدر الإمكان.</p><p>للمنتجات التالفة أو الخاطئة نتحمل تكلفة الاستبدال بالكامل. للبدء تواصل معنا عبر <a href="/contact.html">صفحة التواصل</a> أو واتساب ومعك رقم الطلب.</p>'],
-  ['cancel', 'إلغاء الطلب', '<p>يمكنك طلب إلغاء الطلب قبل شحنه بالتواصل معنا. بعد خروج الطلب للتوصيل يتم التعامل معه وفق سياسة الاستبدال. نحتفظ بحق إلغاء الطلب في حال نفاد المخزون أو تعذّر التواصل معك، مع إبلاغك.</p>'],
-  ['reviews', 'سياسة التقييمات', '<p>التقييم متاح فقط للعملاء الذين استلموا المنتج فعلًا (حالة الطلب "تم التسليم")، وتقييم واحد لكل منتج لكل حساب، ويمكن تعديله أو حذفه في أي وقت من <a href="/profile/my-reviews">تقييماتي</a>.</p><p>يظهر التقييم باسمك المسجّل في الحساب. نحتفظ بحق إزالة أي تقييم يحتوي على إساءة أو إعلانات أو بيانات شخصية.</p><p>متوسط تقييم المنتج وعدد التقييمات يُحسبان تلقائيًا من التقييمات الحقيقية فقط.</p>'],
-  ['terms', 'الشروط والأحكام', '<p>الأسعار بالجنيه المصري وقد تتغير دون إشعار مسبق، ويُحاسب العميل بالسعر المعروض وقت تأكيد الطلب. صور المنتجات للتوضيح وقد يختلف اللون أو العبوة قليلًا.</p><p>باستخدامك للمتجر فأنت توافق على هذه السياسات وعلى <a href="/privacy">سياسة الخصوصية</a>.</p>']
+  ['shipping', 'الشحن والتوصيل', `<p>نوصل لجميع محافظات مصر. رسوم الشحن ${money(K.shippingFee)}، ويصبح الشحن مجانيًا للطلبات بقيمة ${money(K.freeShipFrom)} أو أكثر.</p><p>نتصل بك لتأكيد الطلب قبل الشحن ونبلغك بموعد التوصيل المتوقع. تقدر تتابع حالة الطلب لحظة بلحظة من <a href="/track.html">تتبع طلبك</a>، أو من <a href="/profile/my-orders">طلباتي</a> لو عندك حساب.</p><p>يرجى التأكد من صحة العنوان ورقم الموبايل، لأن التوصيل يتم عليهما.</p>`, 'shipping-truck.webp'],
+  ['payment', 'طرق الدفع', '<p>ندعم الدفع أونلاين (بطاقة بنكية أو محفظة إلكترونية) والتحويل عبر إنستا باي. يتم تأكيد الطلب بعد وصول الدفع، وتظهر لك تعليمات الدفع بعد إتمام الطلب مباشرة.</p>', 'PAY'],
+  ['returns', 'الاستبدال والاسترجاع', '<p>يمكنك طلب استبدال المنتج خلال 14 يومًا من الاستلام بشرط أن يكون بحالته الأصلية وغير مستخدم، ومعه الغلاف أو العبوة قدر الإمكان.</p><p>للمنتجات التالفة أو الخاطئة نتحمل تكلفة الاستبدال بالكامل. للبدء تواصل معنا عبر <a href="/contact.html">صفحة التواصل</a> أو واتساب ومعك رقم الطلب.</p>', 'returns.webp'],
+  ['cancel', 'إلغاء الطلب', '<p>يمكنك طلب إلغاء الطلب قبل شحنه بالتواصل معنا. بعد خروج الطلب للتوصيل يتم التعامل معه وفق سياسة الاستبدال. نحتفظ بحق إلغاء الطلب في حال نفاد المخزون أو تعذّر التواصل معك، مع إبلاغك.</p>', 'cancel-order.webp'],
+  ['reviews', 'سياسة التقييمات', '<p>التقييم متاح فقط للعملاء الذين استلموا المنتج فعلًا (حالة الطلب "تم التسليم")، وتقييم واحد لكل منتج لكل حساب، ويمكن تعديله أو حذفه في أي وقت من <a href="/profile/my-reviews">تقييماتي</a>.</p><p>يظهر التقييم باسمك المسجّل في الحساب. نحتفظ بحق إزالة أي تقييم يحتوي على إساءة أو إعلانات أو بيانات شخصية.</p><p>متوسط تقييم المنتج وعدد التقييمات يُحسبان تلقائيًا من التقييمات الحقيقية فقط.</p>', 'reviews.webp'],
+  ['terms', 'الشروط والأحكام', '<p>الأسعار بالجنيه المصري وقد تتغير دون إشعار مسبق، ويُحاسب العميل بالسعر المعروض وقت تأكيد الطلب. صور المنتجات للتوضيح وقد يختلف اللون أو العبوة قليلًا.</p><p>تشمل الشروط والأحكام بنود <a href="#shipping">الشحن والتوصيل</a> و<a href="#returns">الاستبدال والاسترجاع</a> و<a href="#cancel">إلغاء الطلب</a> و<a href="#reviews">سياسة التقييمات</a>.</p><p>باستخدامك للمتجر فأنت توافق على هذه السياسات وعلى <a href="/privacy">سياسة الخصوصية</a>.</p>', 'terms.webp']
 ]);
 
 pages.privacy = () => legal('سياسة الخصوصية', LAST, [

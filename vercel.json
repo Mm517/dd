@@ -17,6 +17,14 @@
       "destination": "/be-seller/index.html"
     },
     {
+      "source": "/stuff",
+      "destination": "/stuff/index.html"
+    },
+    {
+      "source": "/stuff/:path*",
+      "destination": "/stuff/index.html"
+    },
+    {
       "source": "/admin",
       "destination": "/admin/index.html"
     },
@@ -110,7 +118,7 @@
       ]
     },
     {
-      "source": "/(be-seller|admin)(.*)",
+      "source": "/(be-seller|admin|stuff)(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",

@@ -21,7 +21,7 @@ const authLayout = (inner, art = true) => `<div class="auth"><section class="aut
   <li>${ic('store')}<span>متجر خاص بك على الموقع بصفحة ورابط مستقل</span></li>
   <li>${ic('chart')}<span>لوحة تحكم بالطلبات والتحليلات والمدفوعات</span></li>
   <li>${ic('mega')}<span>إعلانات وحملات توصّل منتجك لعملاء أكثر</span></li>
-  <li>${ic('shield')}<span>مراجعة سريعة للمنتجات، وسحب أرباحك بإنستا باي</span></li></ul></div>
+  <li>${ic('shield')}<span>مراجعة سريعة للمنتجات، وسحب أرباحك بإنستا باي</span></li></ul><img src="/assets/img/pages/${location.pathname.endsWith('/signup') ? 'seller-signup' : 'seller-login-scooter'}.webp" alt="" width="280" height="280" style="margin-top:20px;width:min(280px,65%);height:auto;border-radius:20px;background:#fff"></div>
   <p style="opacity:.6;font-size:.85rem">© Kitchenly ${new Date().getFullYear()}</p></section>
   <section class="auth__form"><div class="auth__box">${inner}</div></section></div>`;
 

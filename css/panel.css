@@ -165,3 +165,5 @@ dialog h2{font-size:1.2rem}
 }
 @media (max-width:620px){.g2,.g3,.g4,.fgrid.two{grid-template-columns:1fr}.stat__v{font-size:1.4rem}.g4.keep2{grid-template-columns:1fr 1fr}.pgh h2{font-size:1.25rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.sicon{width:56px;height:56px;object-fit:contain;flex:none}

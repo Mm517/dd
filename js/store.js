@@ -1,7 +1,7 @@
 /* Kitchenly - صفحات المتجر: الرئيسية، المنتجات، الأقسام، العروض، المنتج، السلة، الدفع، التتبع. */
 (() => {
 'use strict';
-const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, Discover: D, payLogos, skelQuad } = window.KTApp;
+const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, noProducts, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, Discover: D, payLogos, skelQuad } = window.KTApp;
 
 const head = (title, sub, href, label = 'عرض الكل') => `<div class="sec__head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${href ? `<a href="${href}" class="sec__all">${label} ${ic('chevL', 'ico-sm')}</a>` : ''}</div>`;
 const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><select id="sort" class="field"><option value="for-you">مختارة لك</option><option value="new">الأحدث</option><option value="popular">الأكثر تقييمًا</option><option value="price-asc">السعر من الأقل</option><option value="price-desc">السعر من الأعلى</option><option value="discount">الأعلى خصمًا</option></select></div>`;
@@ -74,7 +74,7 @@ pages.home = async () => {
   try { [cats, prof] = await Promise.all([loadCats(), D.profile()]); } catch (e) { console.error(e); }
   const tile = (href, icon, name, cls = '') => `<a href="${href}" class="cat ${cls}"><span class="cat__ic">${ic(icon)}</span><span>${esc(name)}</span></a>`;
   $('#cats').innerHTML = cats.length ? cats.map(c => tile(curl(c.slug), c.slug, c.name)).join('') + tile('/offers/', 'offers', 'العروض', 'cat--offers') + tile('/yours-offer', 'yours', 'عروضك', 'cat--offers') : errorBox();
-  if (!prof || !prof.all.length) { $('#q1').innerHTML = errorBox(); return; }
+  if (!prof || !prof.all.length) { $('#q1').innerHTML = noProducts('تعذر تحميل المنتجات الآن.'); return; }
 
   const all = prof.all, inStock = all.filter(p => p.stock > 0), sale = inStock.filter(p => p.old_price > p.price);
   const pick = (list, n) => D.shuffle(list).slice(0, n);
@@ -130,9 +130,9 @@ pages.category = async () => {
   $('#chips').innerHTML = chipsRow(cats, slug);
   D.addCat(slug);
   let list = [], fy = [], s = 'for-you'; $('#sort').value = s;
-  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
+  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : noProducts('لا توجد منتجات في هذا القسم حاليًا.', false); };
   mountAds('category', $('#count'), { title: 'مموّل في هذا القسم' });
-  try { list = await db.products({ cat: slug }); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
+  try { list = await db.products({ cat: slug }); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = noProducts('تعذر تحميل المنتجات الآن.'); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
 
@@ -140,8 +140,8 @@ pages.offers = async () => {
   listShell({ title: 'العروض والخصومات', sub: 'منتجات عليها خصم حقيقي، والكمية محدودة', icon: 'offers', crumbs: '<span>العروض</span>' });
   const cats = await loadCats(); $('#chips').innerHTML = chipsRow(cats, 'offers');
   let list = [], s = 'discount'; $('#sort').value = s;
-  const draw = () => { $('#count').textContent = `${list.length} منتج عليه خصم`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد عروض حاليًا، تابعنا قريبًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
-  try { list = await db.products({ sale: true }); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
+  const draw = () => { $('#count').textContent = `${list.length} منتج عليه خصم`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : noProducts('لا توجد عروض حاليًا، تابعنا قريبًا.', false); };
+  try { list = await db.products({ sale: true }); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = noProducts('تعذر تحميل المنتجات الآن.'); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
 
@@ -193,10 +193,10 @@ pages.shop = async () => {
   }
 
   let list = [], fy = [];
-  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
+  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : noProducts('لا توجد منتجات حاليًا.', false); };
   $('#sort').value = sort;
   mountAds('shop', $('#count'), { title: 'مموّل' });
-  try { list = await db.products(); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); grid.innerHTML = errorBox(); }
+  try { list = await db.products(); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); grid.innerHTML = noProducts('تعذر تحميل المنتجات الآن.'); }
   $('#sort').onchange = e => { sort = e.target.value; draw(); };
 };
 
@@ -417,15 +417,15 @@ pages.store = async () => {
   if (!st) { document.title = 'المتجر غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المتجر. ربما تم إيقافه أو تغير رابطه.', '/shop.html', 'تصفح المنتجات', 'notfound')}</div>`; return; }
   document.title = `${st.name} | Kitchenly`; setHashtag(`#${st.name.trim().replace(/\s+/g, '_')}`);
   app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><span>${esc(st.name)}</span></nav>
-  <header class="storehd"${st.cover ? ` style="background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${esc(st.cover)}')"` : ''}>
+  <header class="storehd${st.cover ? '' : ' storehd--def'}"${st.cover ? ` style="background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${esc(st.cover)}')"` : ` style="background-image:linear-gradient(270deg,rgba(255,255,255,.92),rgba(255,255,255,.6) 55%,rgba(255,255,255,.1)),url('/assets/img/pages/seller-cover.webp')"`}>
     <span class="storehd__lg">${st.logo ? `<img src="${esc(st.logo)}" alt="">` : ic('box', 'ico-lg')}</span>
     <div><h1>${esc(st.name)}</h1><p>${[st.city, 'متجر شريك على Kitchenly'].filter(Boolean).map(esc).join(' • ')}</p>${st.description ? `<p class="storehd__ds">${esc(st.description)}</p>` : ''}</div></header>
   <div class="toolbar"><div style="flex:1"></div>${sortBar().replace('<option value="for-you">مختارة لك</option>', '').replace(/<option value="discount">[^<]*<\/option>/, '')}${viewBar()}</div>
   <p id="count" class="count" aria-live="polite"></p><div class="grid${viewMode() === 'list' ? ' grid--list' : ''}" id="grid" style="margin-top:12px">${skeletons(4)}</div></div>`;
   $$('[data-view]').forEach(b => b.onclick = () => { const m = b.dataset.view; try { localStorage.setItem('kt_view', m); } catch { /* */ } $$('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#grid').classList.toggle('grid--list', m === 'list'); });
   let list = [], s = 'new'; $('#sort').value = s;
-  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد منتجات في هذا المتجر حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
-  try { list = await db.byStore(st.id); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
+  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : noProducts('لا توجد منتجات في هذا المتجر حاليًا.', false); };
+  try { list = await db.byStore(st.id); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = noProducts('تعذر تحميل المنتجات الآن.'); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
 

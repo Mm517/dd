@@ -13,6 +13,7 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 | صفحة متجر بائع | `/store/<slug>` |
 | سلة، دفع، تتبع، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `auth.html` |
 | البروفايل | `/profile` ، `/profile/my-orders` ، `/profile/my-reviews` |
+| لوحة فريق العمل | `/stuff/login` ، `/stuff/help-requests` (`/users` `/seller`) ، `/stuff/store` (`/details` `/details/products` `/details/images` `/details/money`) ، `/stuff/my-team` |
 | مساعدة، خصوصية، سياسات، انضم إلينا، عروضك | `/help` ، `/privacy` ، `/policy` ، `/join-us` ، `/yours-offer` |
 
 الروابط كلها تبدأ بـ `/` فلازم الموقع يتفتح من جذر الدومين (Vercel/Netlify)، وليس بفتح الملف مباشرة. قواعد إعادة التوجيه موجودة في `vercel.json` و `_redirects`.
@@ -95,3 +96,11 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 ### ملاحظات مهمة
 - الواجهة العامة بتفلتر `approval_status = 'approved'` لأن الأدمن والبائع بيشوفوا غير المعتمد بسبب RLS.
 - دالة `kt_place_order` ودالة `ai-search` (Edge Function) لازم تتأكد إنها بتتجاهل المنتجات غير المعتمدة / متجرها غير مفعّل.
+
+## لوحة فريق العمل `/stuff`
+صفحة مستقلة (`stuff/index.html` + `js/stuff.js`) بنفس نظام لوحة الأدمن والصلاحية `kt_is_admin()`. الدخول من `/stuff/login` بحساب موجود في `kt_admins`.
+- `help-requests`: رسائل `kt_messages` مقسّمة عملاء / بائعين. `store/details/*`: منتجات وصور وأموال منتجات Kitchenly الخاصة. `my-team`: إضافة وإزالة أعضاء الفريق.
+- لازم تشغّل `supabase/stuff-team.sql` مرة واحدة (دوال إدارة الفريق).
+
+## حالة "لا توجد منتجات"
+لو المنتجات ما اتحملتش أو القسم فاضي، `noProducts()` في `js/app.js` بتعرض أيقونة `assets/img/states/no-products.webp` (لو الملف مش موجود بيظهر رسم SVG بديل) مع زر إعادة المحاولة.

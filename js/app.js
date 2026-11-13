@@ -59,6 +59,7 @@ const IMGDIR = '/assets/img/icons/';
 const ICONIMG = { offers: 'offers', yours: 'yours', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us',
   'st-ok': '/assets/img/states/order-confirmed.webp', 'st-cancel': '/assets/img/states/order-cancelled.webp' };
 ICONIMG.organizers = '/assets/img/states/bathroom-organizers.webp';
+ICONIMG.bathroom = '/assets/img/icons/bathroom.webp';   /* قسم منظمات الحمام والتخزين */
 const ic = (n, c = 'ico') => ICONIMG[n] ? `<img class="${c} ico-img" src="${ICONIMG[n].startsWith('/') ? ICONIMG[n] : `${IMGDIR}${ICONIMG[n]}.png`}" alt="" loading="lazy" decoding="async">` : `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
 const stars = r => { const n = Math.round(r); return `<span class="stars" aria-label="تقييم ${r} من 5">${Array.from({ length: 5 }, (_, i) => `<svg class="${i < n ? 'on' : ''}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`).join('')}</span>`; };
 
@@ -248,6 +249,9 @@ const errorBox = (msg = 'تعذر تحميل البيانات. تحقق من ا�
 /* صور الحالات الفاضية: kind = cart | search | orders | notfound | imgsearch */
 const STATE_IMG = { cart: 'empty-cart', search: 'no-results', orders: 'no-results', notfound: '404', imgsearch: 'image-search' };
 const stateImg = kind => (STATE_IMG[kind] ? `<img class="empty__img empty__img--${kind}" src="/assets/img/states/${STATE_IMG[kind]}.webp" alt="" loading="lazy" decoding="async">` : '');
+/* لو المنتجات ما اتحملتش (مشكلة اتصال/سيرفر) أو القسم فاضي: أيقونة "لا توجد منتجات". لو ملف الصورة مش موجود بيظهر رسم SVG بديل. */
+const NOPROD_SVG = '<svg class="empty__img empty__img--noproducts" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 40 60 16l46 24v44L60 108 14 84z"/><path d="M14 40l46 24 46-24M60 64v44"/><path d="M42 28l46 24" stroke-dasharray="2 7"/></svg>';
+const noProducts = (msg = 'لا توجد منتجات متاحة الآن.', retry = true) => `<div class="card empty empty--noproducts"><img class="empty__img empty__img--noproducts" src="/assets/img/states/no-products.webp" alt="" loading="lazy" decoding="async" onerror="this.outerHTML=window.KTApp.NOPROD_SVG"><p>${esc(msg)}</p>${retry ? '<button class="btn btn-ghost" onclick="location.reload()">إعادة المحاولة</button>' : ''}</div>`;
 const emptyBox = (msg, href = '/shop.html', label = 'تصفح المنتجات', kind = '') => `<div class="card empty">${stateImg(kind)}<p>${esc(msg)}</p>${href ? `<a class="btn btn-primary" href="${href}">${label}</a>` : ''}</div>`;
 const STATUS = { new: 'تم استلام الطلب', confirmed: 'تم التأكيد', shipping: 'الأوردر في الطريق', delivered: 'المندوب وصل', cancelled: 'ملغي' };
 const PAYNAME = { cod: 'عند الاستلام', wallet: 'محفظة إلكترونية', online: 'دفع أونلاين', instapay: 'إنستا باي' };
@@ -401,7 +405,7 @@ document.addEventListener('click', e => {
 
 const recent = slug => { try { const l = JSON.parse(localStorage.getItem('kt_recent') || '[]').filter(x => x !== slug); l.unshift(slug); localStorage.setItem('kt_recent', JSON.stringify(l.slice(0, 12))); } catch { /* التخزين محجوب */ } };
 const pages = {};
-window.KTApp = { Discover, payLogos, recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, skelQuad, stateImg, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
+window.KTApp = { noProducts, NOPROD_SVG, Discover, payLogos, recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, skelQuad, stateImg, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
 
 document.addEventListener('DOMContentLoaded', async () => {
   try { await getSession(); } catch { /* بدون اتصال */ }

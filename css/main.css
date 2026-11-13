@@ -692,3 +692,11 @@ body.has-tabbar{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
 .storehd__lg img{width:100%;height:100%;object-fit:cover}
 .storehd h1{font-size:1.6rem;margin:0}.storehd p{margin:4px 0 0;opacity:.85}.storehd__ds{max-width:640px;font-size:.92rem}
 @media (max-width:620px){.storehd{flex-direction:column;align-items:flex-start;padding:20px 16px}}
+
+/* حالة "لا توجد منتجات" (فشل التحميل أو قسم فاضي) */
+.empty--noproducts{display:grid;justify-items:center;gap:4px}
+.empty__img--noproducts{width:min(190px,56%);height:auto;margin:0 auto 8px;color:var(--muted,#8a8f98)}
+svg.empty__img--noproducts{mix-blend-mode:normal;opacity:.7}
+
+/* غلاف المتجر الافتراضي (فاتح) = نص غامق */
+.storehd.storehd--def,.storehd.storehd--def h1,.storehd.storehd--def p{color:var(--ink)}

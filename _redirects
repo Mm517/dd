@@ -4,6 +4,8 @@
 /store/:slug  /store/index.html  200
 /be-seller  /be-seller/index.html  200
 /be-seller/*  /be-seller/index.html  200
+/stuff  /stuff/index.html  200
+/stuff/*  /stuff/index.html  200
 /admin  /admin/index.html  200
 /admin/*  /admin/index.html  200
 /category/*  /category/index.html  200

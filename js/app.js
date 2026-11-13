@@ -56,15 +56,17 @@ const ICONS = {
 };
 /* أيقونات صور (3D) بدل الـ SVG للأقسام والعروض وحالات الطلب */
 const IMGDIR = '/assets/img/icons/';
-const ICONIMG = { offers: 'offers', yours: 'yours', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us' };
-const ic = (n, c = 'ico') => ICONIMG[n] ? `<img class="${c} ico-img" src="${IMGDIR}${ICONIMG[n]}.png" alt="" loading="lazy" decoding="async">` : `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
+const ICONIMG = { offers: 'offers', yours: 'yours', sponges: 'sponges', brushes: 'brushes', microfiber: 'microfiber', 'cleaning-tools': 'cleaning-tools', bundles: 'bundles', organizers: 'organizers', 'st-new': 'order-received', 'st-ship': 'on-the-way', 'st-done': 'courier-arrived', join: 'join-us',
+  'st-ok': '/assets/img/states/order-confirmed.webp', 'st-cancel': '/assets/img/states/order-cancelled.webp' };
+ICONIMG.organizers = '/assets/img/states/bathroom-organizers.webp';
+const ic = (n, c = 'ico') => ICONIMG[n] ? `<img class="${c} ico-img" src="${ICONIMG[n].startsWith('/') ? ICONIMG[n] : `${IMGDIR}${ICONIMG[n]}.png`}" alt="" loading="lazy" decoding="async">` : `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ICONS.default}</svg>`;
 const stars = r => { const n = Math.round(r); return `<span class="stars" aria-label="تقييم ${r} من 5">${Array.from({ length: 5 }, (_, i) => `<svg class="${i < n ? 'on' : ''}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>`).join('')}</span>`; };
 
 /* ---------- هاشتاج الصفحة (شرح عام بالعربي) ---------- */
 const TAGS = {
   home: '#متجر_أدوات_المطبخ_والتنظيف', shop: '#كل_منتجات_المطبخ', category: '#تسوق_حسب_القسم', offers: '#عروض_وخصومات_المطبخ',
   product: '#تفاصيل_المنتج', cart: '#سلة_التسوق', checkout: '#إتمام_الطلب_والدفع', success: '#تم_استلام_طلبك', track: '#تتبع_طلبك',
-  auth: '#تسجيل_الدخول_والحساب', account: '#حسابي_وطلباتي', profile: '#حسابي', myorders: '#طلباتي', myreviews: '#تقييماتي', help: '#مركز_المساعدة', privacy: '#سياسة_الخصوصية', policy: '#سياسات_المتجر', join: '#انضم_إلينا', yours: '#عروضك_أنت', admin: '#لوحة_تحكم_المتجر', policies: '#سياسات_المتجر', contact: '#تواصل_معنا', notfound: '#الصفحة_غير_موجودة'
+  auth: '#تسجيل_الدخول_والحساب', account: '#حسابي_وطلباتي', profile: '#حسابي', myorders: '#طلباتي', myreviews: '#تقييماتي', help: '#مركز_المساعدة', privacy: '#سياسة_الخصوصية', policy: '#سياسات_المتجر', join: '#انضم_إلينا', yours: '#عروضك_أنت', admin: '#لوحة_تحكم_المتجر', policies: '#سياسات_المتجر', contact: '#تواصل_معنا', about: '#من_نحن', notfound: '#الصفحة_غير_موجودة'
 };
 function setHashtag(tag) { const el = $('#page-tag'); if (el) el.textContent = tag; }
 
@@ -217,18 +219,29 @@ function fileToJpeg(file, max = 1024) {
 const discount = p => (p.old_price > p.price ? Math.round((1 - p.price / p.old_price) * 100) : 0);
 function card(p) {
   const d = discount(p), out = p.stock < 1, low = !out && p.stock <= 10, save = d ? Math.round(p.old_price - p.price) : 0;
-  const il = imgList(p), multi = il.length > 1;
-  return `<article class="pcard"><a href="${purl(p)}" class="pcard__img${multi ? ' is-multi' : ''}" ${multi ? `data-imgs="${esc(JSON.stringify(il))}"` : ''}><img src="${esc(il[0])}" alt="${esc(p.name)}" loading="lazy">${multi ? `<span class="pcard__dots" aria-hidden="true">${il.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}${d ? `<span class="pcard__off">-${d}%</span>` : ''}${p.badge ? `<span class="pcard__badge">${esc(p.badge)}</span>` : ''}</a>
-  <div class="pcard__body"><a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a>${p.reviews_count > 0 ? `<div class="stars">${stars(p.rating)}<span>(${p.reviews_count})</span></div>` : '<div class="stars"><span class="newtag">لا تقييمات بعد</span></div>'}
-  <div class="price"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>${save ? `<p class="pcard__save">وفّر ${fmt(save)} جنيه</p>` : ''}${low ? `<p class="pcard__low">متبقي ${p.stock} قطع فقط</p>` : ''}
-  <button class="btn btn-primary btn-block" data-add="${esc(p.slug)}" ${out ? 'disabled' : ''}>${out ? 'غير متوفر' : 'أضف للسلة'}</button></div></article>`;
+  const il = imgList(p), multi = il.length > 1, free = p.price >= K.freeShipFrom;
+  const rate = p.reviews_count > 0 ? `<div class="pcard__rate" aria-label="تقييم ${p.rating} من 5"><b>${Number(p.rating).toFixed(1)}</b>${stars(p.rating)}<span>(${fmt(p.reviews_count)})</span></div>` : '<div class="pcard__rate"><span class="newtag">جديد، لا تقييمات بعد</span></div>';
+  const tag = out ? '<span class="pcard__tag pcard__tag--out">غير متوفر</span>' : d >= 15 ? `<span class="pcard__tag pcard__tag--deal">عرض محدود</span>` : p.badge ? `<span class="pcard__tag">${esc(p.badge)}</span>` : '';
+  return `<article class="pcard"><a href="${purl(p)}" class="pcard__img imgph${multi ? ' is-multi' : ''}" ${multi ? `data-imgs="${esc(JSON.stringify(il))}"` : ''} tabindex="-1" aria-hidden="true"><img src="${esc(il[0])}" alt="" loading="lazy" decoding="async">${multi ? `<span class="pcard__dots" aria-hidden="true">${il.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}${d ? `<span class="pcard__off">-${d}%</span>` : ''}</a>
+  <div class="pcard__body">${tag}<a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a>${rate}
+  <div class="price"><b>${fmt(p.price)}<small>جنيه</small></b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>
+  <ul class="pcard__meta">${save ? `<li class="is-save">وفّر ${fmt(save)} جنيه</li>` : ''}<li class="${free ? 'is-free' : ''}">${free ? 'شحن مجاني' : `شحن مجاني فوق ${fmt(K.freeShipFrom)} جنيه`}</li>${low ? `<li class="is-low">متبقي ${p.stock} قطع فقط</li>` : ''}</ul>
+  <button class="btn btn-primary btn-block pcard__add" data-add="${esc(p.slug)}" ${out ? 'disabled' : ''}>${out ? 'غير متوفر' : 'أضف للسلة'}</button></div></article>`;
 }
 const imgSrc = p => (/^https?:/.test(p.image || '') ? p.image : `/${String(p.image || '').replace(/^\//, '')}`);
 /* كل صور المنتج: الرئيسية أولًا ثم الباقي (عمود images) بدون تكرار */
 const imgList = p => { const first = imgSrc(p); const rest = (Array.isArray(p.images) ? p.images : []).filter(Boolean).map(x => imgSrc({ image: x })).filter(x => x !== first); return [first, ...new Set(rest)]; };
-const skeletons = (n = 4) => Array.from({ length: n }, () => '<div class="skel" style="aspect-ratio:3/4"></div>').join('');
+/* سكلتون بنفس شكل الكارت بالضبط: صورة + اسم + تقييم + سعر + زر */
+const skelCard = () => '<div class="pcard pcard--skel" aria-hidden="true"><div class="pcard__img sk"></div><div class="pcard__body"><i class="sk sk--tag"></i><i class="sk sk--l1"></i><i class="sk sk--l2"></i><i class="sk sk--rate"></i><i class="sk sk--price"></i><i class="sk sk--meta"></i><i class="sk sk--btn"></i></div></div>';
+const skeletons = (n = 4) => Array.from({ length: n }, skelCard).join('');
+const skelQuad = n => Array.from({ length: n }, () => '<div class="qcard qcard--skel" aria-hidden="true"><i class="sk sk--title"></i><div class="qcard__grid">' + '<i class="sk sk--tile"></i>'.repeat(4) + '</div><i class="sk sk--meta"></i></div>').join('');
+/* سكلتون لكل صورة: يفضل يلمع لحد ما الصورة تحمّل */
+['load', 'error'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if (t && t.tagName === 'IMG') t.closest('.imgph')?.classList.add('ld'); }, true));
 const errorBox = (msg = 'تعذر تحميل البيانات. تحقق من الاتصال ثم حاول مرة أخرى.') => `<div class="card empty"><p>${esc(msg)}</p><button class="btn btn-ghost" onclick="location.reload()">إعادة المحاولة</button></div>`;
-const emptyBox = (msg, href = '/shop.html', label = 'تصفح المنتجات') => `<div class="card empty"><p>${esc(msg)}</p><a class="btn btn-primary" href="${href}">${label}</a></div>`;
+/* صور الحالات الفاضية: kind = cart | search | orders | notfound | imgsearch */
+const STATE_IMG = { cart: 'empty-cart', search: 'no-results', orders: 'no-results', notfound: '404', imgsearch: 'image-search' };
+const stateImg = kind => (STATE_IMG[kind] ? `<img class="empty__img empty__img--${kind}" src="/assets/img/states/${STATE_IMG[kind]}.webp" alt="" loading="lazy" decoding="async">` : '');
+const emptyBox = (msg, href = '/shop.html', label = 'تصفح المنتجات', kind = '') => `<div class="card empty">${stateImg(kind)}<p>${esc(msg)}</p>${href ? `<a class="btn btn-primary" href="${href}">${label}</a>` : ''}</div>`;
 const STATUS = { new: 'تم استلام الطلب', confirmed: 'تم التأكيد', shipping: 'الأوردر في الطريق', delivered: 'المندوب وصل', cancelled: 'ملغي' };
 const PAYNAME = { cod: 'عند الاستلام', wallet: 'محفظة إلكترونية', online: 'دفع أونلاين', instapay: 'إنستا باي' };
 
@@ -288,13 +301,15 @@ function initSearch() {
   const input = $('#q'), box = $('#sug'); if (!input) return;
   let t = null, seq = 0;
   const hide = () => { box.hidden = true; };
+  const imgRow = `<button type="button" class="sug__row sug__img" data-pick-img><img src="/assets/img/states/image-search.webp" alt="" width="44" height="44"><span><b>ابحث بالصورة</b><small>ارفع صورة للمنتج وهنوصلك لأقرب منتج عندنا</small></span></button>`;
   const row = p => `<a href="${purl(p)}"><img src="${imgSrc(p)}" alt=""><span><b>${esc(p.name)}</b><small>${money(p.price)}</small></span></a>`;
   const run = async () => {
-    const q = input.value.trim(); if (norm(q).length < 2) return hide();
+    const q = input.value.trim();
+    if (norm(q).length < 2) { if (K.aiSearch) { box.innerHTML = imgRow; box.hidden = false; } else hide(); return; }
     const my = ++seq, all = await loadAll(); if (my !== seq) return;
     const { exact, partial } = searchLocal(q, all), top = [...exact, ...partial].slice(0, 5);
     box.innerHTML = (top.length ? top.map(row).join('') : `<p style="padding:12px 14px;color:var(--muted)">لا يوجد تطابق مباشر لـ "${esc(q)}"</p>`) +
-      `<a class="sug__ai" href="/shop.html?q=${encodeURIComponent(q)}">${ic(K.aiSearch && !exact.length ? 'sparkle' : 'search')}<span>${exact.length ? `عرض كل النتائج لـ "${esc(q)}"` : 'اعرض لي اقتراحات ذكية'}</span></a>`;
+      `<a class="sug__ai" href="/shop.html?q=${encodeURIComponent(q)}">${ic(K.aiSearch && !exact.length ? 'sparkle' : 'search')}<span>${exact.length ? `عرض كل النتائج لـ "${esc(q)}"` : 'اعرض لي اقتراحات ذكية'}</span></a>` + (K.aiSearch ? imgRow : '');
     box.hidden = false;
   };
   input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 180); });
@@ -302,6 +317,7 @@ function initSearch() {
   document.addEventListener('click', e => { if (!e.target.closest('#srch')) hide(); });
   input.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
   const btn = $('#imgbtn'), file = $('#imgfile');
+  box.addEventListener('click', e => { if (e.target.closest('[data-pick-img]') && file) { hide(); file.click(); } });
   if (btn) {
     btn.onclick = () => file.click();
     file.onchange = async () => {
@@ -337,7 +353,7 @@ function renderTabbar(page) {
 function renderFooter() {
   const l = (h, t) => `<a href="${h}">${t}</a>`;
   $('#site-footer').innerHTML = `<footer class="ftr"><div class="wrap"><div class="ftr__row"><a href="/" class="logo" aria-label="Kitchenly"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY</a>
-  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/contact.html', 'تواصل معنا')}</nav></div>
+  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/about', 'من نحن')}${l('/contact.html', 'تواصل معنا')}</nav></div>
   <nav class="ftr__links ftr__legal" aria-label="السياسات">${l('/policy', 'سياسات المتجر')}${l('/policy#returns', 'الاستبدال والاسترجاع')}${l('/privacy', 'سياسة الخصوصية')}${l('/policy#terms', 'الشروط والأحكام')}${l('/join-us', 'انضم إلينا')}</nav>
   <div class="ftr__pay"><span>وسائل الدفع</span>${payLogos(['instapay'], 'on-dark')}${payLogos(['paymob', 'visa'], 'on-dark')}</div>
   <p class="ftr__copy">جميع الحقوق محفوظة، Kitchenly ${new Date().getFullYear()}</p></div></footer>`;
@@ -378,7 +394,7 @@ document.addEventListener('click', e => {
 
 const recent = slug => { try { const l = JSON.parse(localStorage.getItem('kt_recent') || '[]').filter(x => x !== slug); l.unshift(slug); localStorage.setItem('kt_recent', JSON.stringify(l.slice(0, 12))); } catch { /* التخزين محجوب */ } };
 const pages = {};
-window.KTApp = { Discover, payLogos, recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
+window.KTApp = { Discover, payLogos, recent, K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, badge, db, loadCats, loadAll, searchLocal, aiText, norm, card, skeletons, skelQuad, stateImg, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, TAGS, getSession, requireLogin, get session() { return SESSION; } };
 
 document.addEventListener('DOMContentLoaded', async () => {
   try { await getSession(); } catch { /* بدون اتصال */ }

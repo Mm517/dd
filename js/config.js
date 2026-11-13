@@ -6,8 +6,12 @@ window.KT = {
   whatsapp: '201012345678',
   shippingFee: 40,                   // لازم يطابق kt_place_order في قاعدة البيانات
   freeShipFrom: 500,
-  /* البانر الإعلاني في الرئيسية: الصورة + الصفحة اللي يفتحها */
-  banner: { image: '/assets/img/promo-sale.jpg', wide: '/assets/img/promo-sale-wide.jpg', href: '/offers/', alt: 'خصم حتى 50% على مستلزمات التنظيف - اكتشف العروض' },
+  /* بانرات الرئيسية: بتتبدّل مع الأيام وكل 6 ثواني. أضف بانر جديد بس بإضافة سطر هنا. */
+  banners: [
+    { image: '/assets/img/banners/free-shipping.webp', href: '/shop.html', alt: 'شحن مجاني فوق 500 جنيه من Kitchenly' },
+    { image: '/assets/img/banners/collections.webp', href: '/category/bundles', alt: 'المجموعات: كل ما تحتاجه في مكان واحد' }
+    /* { image: '/assets/img/banners/new-product.webp', href: '/shop.html?sort=new', alt: 'منتج جديد' } */
+  ],
   /* البحث الذكي (Supabase Edge Function ai-search + Gemini) */
   aiSearch: true,
   /* الدفع: اربطهم لاحقًا من هنا */

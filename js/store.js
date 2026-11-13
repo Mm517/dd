@@ -1,10 +1,13 @@
 /* Kitchenly - صفحات المتجر: الرئيسية، المنتجات، الأقسام، العروض، المنتج، السلة، الدفع، التتبع. */
 (() => {
 'use strict';
-const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, Discover: D, payLogos } = window.KTApp;
+const { K, sb, $, $$, esc, fmt, money, purl, curl, imgSrc, imgList, params, ic, stars, toast, Cart, shipping, db, loadCats, loadAll, searchLocal, aiText, card, skeletons, errorBox, emptyBox, discount, STATUS, PAYNAME, pages, setHashtag, Discover: D, payLogos, skelQuad } = window.KTApp;
 
 const head = (title, sub, href, label = 'عرض الكل') => `<div class="sec__head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${href ? `<a href="${href}" class="sec__all">${label} ${ic('chevL', 'ico-sm')}</a>` : ''}</div>`;
 const sortBar = cur => `<div class="sort"><label for="sort">ترتيب</label><select id="sort" class="field"><option value="for-you">مختارة لك</option><option value="new">الأحدث</option><option value="popular">الأكثر تقييمًا</option><option value="price-asc">السعر من الأقل</option><option value="price-desc">السعر من الأعلى</option><option value="discount">الأعلى خصمًا</option></select></div>`;
+/* طريقة عرض أمازون: شبكة أو قائمة (بتتحفظ على جهاز العميل) */
+const viewMode = () => { try { return localStorage.getItem('kt_view') === 'list' ? 'list' : 'grid'; } catch { return 'grid'; } };
+const viewBar = () => `<div class="viewsw" role="group" aria-label="طريقة العرض"><button type="button" data-view="grid" aria-pressed="${viewMode() === 'grid'}" aria-label="عرض شبكة" title="شبكة"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></button><button type="button" data-view="list" aria-pressed="${viewMode() === 'list'}" aria-label="عرض قائمة" title="قائمة"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5"/><rect x="3" y="16" width="18" height="4" rx="1.5"/></svg></button></div>`;
 const sortList = (list, s) => { const a = [...list]; if (s === 'price-asc') a.sort((x, y) => x.price - y.price); else if (s === 'price-desc') a.sort((x, y) => y.price - x.price); else if (s === 'popular') a.sort((x, y) => y.reviews_count - x.reviews_count); else if (s === 'discount') a.sort((x, y) => discount(y) - discount(x)); return a; };
 
 /* ---------------- الرئيسية ---------------- */
@@ -33,19 +36,38 @@ function bindNews() {
 }
 
 /* الرئيسية على طريقة أمازون: كروت مربعة لكل قسم (4 منتجات حقيقية) + عروض + مقترحات من بحثك ومشاهداتك. المنتجات بتتبدّل كل زيارة. */
+/* بانر الرئيسية: صور بتتبدّل مع الأيام + كل 6 ثواني (fade). تعديلها من js/config.js → banners */
+function bannerHtml() {
+  const list = K.banners || [];
+  if (!list.length) return '';
+  const day = Math.floor(Date.now() / 864e5) % list.length, ord = [...list.slice(day), ...list.slice(0, day)];
+  return `<div class="banner" id="banner" role="region" aria-roledescription="carousel" aria-label="عروض Kitchenly"><div class="banner__track">${ord.map((b, i) => `<a class="banner__slide imgph${i ? '' : ' on'}" href="${esc(b.href || '/')}" aria-label="${esc(b.alt || '')}" ${i ? 'tabindex="-1" aria-hidden="true"' : ''}><img src="${esc(b.image)}" alt="${esc(b.alt || '')}" width="1600" height="600" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async"></a>`).join('')}</div>${ord.length > 1 ? `<div class="banner__dots">${ord.map((_, i) => `<button type="button" class="${i ? '' : 'on'}" aria-label="البانر ${i + 1}"></button>`).join('')}</div>` : ''}</div>`;
+}
+function bindBanner() {
+  const root = $('#banner'); if (!root) return;
+  const slides = $$('.banner__slide', root), dots = $$('.banner__dots button', root); if (slides.length < 2) return;
+  let i = 0, t = null;
+  const go = n => { i = (n + slides.length) % slides.length; slides.forEach((x, k) => { x.classList.toggle('on', k === i); x.tabIndex = k === i ? 0 : -1; x.setAttribute('aria-hidden', k === i ? 'false' : 'true'); }); dots.forEach((d, k) => d.classList.toggle('on', k === i)); };
+  const run = () => { clearInterval(t); t = setInterval(() => { if (!document.hidden) go(i + 1); }, 6000); };
+  dots.forEach((d, k) => d.onclick = () => { go(k); run(); });
+  root.addEventListener('pointerenter', () => clearInterval(t)); root.addEventListener('pointerleave', run); root.addEventListener('focusin', () => clearInterval(t)); root.addEventListener('focusout', run);
+  run();
+}
+
+/* الرئيسية على طريقة أمازون: كروت مربعة لكل قسم (4 منتجات حقيقية) + عروض + مقترحات من بحثك ومشاهداتك. المنتجات بتتبدّل مع كل ريفرش (ترتيب الكروت والمنتجات داخلها عشوائي). */
 pages.home = async () => {
-  const b = K.banner, qsk = n => Array.from({ length: n }, () => '<div class="skel" style="height:360px"></div>').join('');
   $('#app').innerHTML = `<div class="wrap">
-    <a class="banner" href="${esc(b.href)}" aria-label="${esc(b.alt)}"><picture>${b.wide ? `<source media="(min-width:600px)" srcset="${esc(b.wide)}">` : ''}<img src="${esc(b.image)}" alt="${esc(b.alt)}" fetchpriority="high"></picture></a>
+    ${bannerHtml()}
     <section class="sec sec--cats" id="cats-sec"><div class="sec__head"><h2>أقسام المتجر</h2></div><div class="cats" id="cats">${Array.from({ length: 8 }, () => '<div class="skel" style="height:84px"></div>').join('')}</div></section>
-    <div class="qgrid" id="q1">${qsk(4)}</div>
+    <div class="qgrid" id="q1">${skelQuad(4)}</div>
     <section class="sec" id="deals-sec" hidden>${head('عروض اليوم', 'خصومات حقيقية على منتجات المتجر، وتتبدّل كل زيارة', '/offers/')}<div class="grid grid--deals" id="deals"></div></section>
     <div class="qgrid" id="q2" hidden></div>
     <div id="because"></div>
     <section class="sec" id="best-sec" hidden>${head('الأكثر طلبًا', 'منتجات يختارها عملاؤنا أكثر', '/shop.html?sort=popular')}<div class="grid" id="best"></div></section>
     <section class="sec" id="recent-sec" hidden>${head('شاهدتها مؤخرًا')}<div class="grid" id="recent"></div></section>
+    <section class="sec" id="feed-sec" hidden>${head('اكتشف المزيد', 'مختارة عشوائيًا، وبتتغيّر كل ما تفتح الصفحة')}<div class="grid" id="feed"></div><div class="feed__more"><button class="btn btn-ghost" id="feed-more" type="button">عرض المزيد</button></div></section>
     ${newsBox()}</div>`;
-  bindNews();
+  bindBanner(); bindNews();
 
   let cats = [], prof = null;
   try { [cats, prof] = await Promise.all([loadCats(), D.profile()]); } catch (e) { console.error(e); }
@@ -55,10 +77,10 @@ pages.home = async () => {
 
   const all = prof.all, inStock = all.filter(p => p.stock > 0), sale = inStock.filter(p => p.old_price > p.price);
   const pick = (list, n) => D.shuffle(list).slice(0, n);
-  const qtile = p => `<a class="qtile" href="${purl(p)}"><span class="qtile__img"><img src="${esc(imgSrc(p))}" alt="" loading="lazy">${discount(p) ? `<i class="qtile__off">-${discount(p)}%</i>` : ''}</span><span class="qtile__cap">${esc(p.name)}</span></a>`;
+  const qtile = p => `<a class="qtile" href="${purl(p)}"><span class="qtile__img imgph"><img src="${esc(imgSrc(p))}" alt="" loading="lazy" decoding="async">${discount(p) ? `<i class="qtile__off">-${discount(p)}%</i>` : ''}</span><span class="qtile__cap">${esc(p.name)}</span></a>`;
   const quad = (title, sub, list, href, label, cls = '') => list.length ? `<section class="qcard ${cls}"><h2>${title}</h2>${sub ? `<p class="qcard__sub">${sub}</p>` : ''}<div class="qcard__grid n${Math.min(list.length, 4)}">${list.slice(0, 4).map(qtile).join('')}</div><a class="qcard__more" href="${href}">${label}</a></section>` : '';
 
-  /* كروت الصف الأول: عروض + مختارة لك + أقسام */
+  /* كروت الصف الأول: عروض + مختارة لك + أقسام (بترتيب عشوائي كل مرة) */
   const topDisc = [...sale].sort((x, y) => discount(y) - discount(x)).slice(0, 8), maxOff = topDisc.length ? discount(topDisc[0]) : 0;
   const dealsCard = quad('عروض اليوم', maxOff ? `خصم يصل إلى ${maxOff}%` : '', pick(topDisc, 4), '/offers/', 'شاهد كل العروض', 'qcard--deal');
   const mine = prof.known ? D.rank(inStock, prof).slice(0, 4) : pick([...inStock].sort((x, y) => y.reviews_count - x.reviews_count).slice(0, 8), 4);
@@ -71,33 +93,43 @@ pages.home = async () => {
   if (sale.length) { $('#deals-sec').hidden = false; $('#deals').innerHTML = pick([...sale].sort((x, y) => discount(y) - discount(x)).slice(0, 12), 8).map(card).join(''); }
 
   /* لأنك بحثت عن ... : منتجات حقيقية مطابقة لبحثك */
-  $('#because').innerHTML = prof.queries.slice(0, 2).map(({ q, items }) => `<section class="sec">${head(`لأنك بحثت عن «${esc(q)}»`, 'منتجات من المتجر مطابقة لبحثك', `/shop.html?q=${encodeURIComponent(q)}`, 'كل النتائج')}<div class="grid">${items.slice(0, 4).map(card).join('')}</div></section>`).join('');
+  $('#because').innerHTML = prof.queries.slice(0, 2).map(({ q, items }) => `<section class="sec">${head(`لأنك بحثت عن «${esc(q)}»`, 'منتجات من المتجر مطابقة لبحثك', `/shop.html?q=${encodeURIComponent(q)}`, 'كل النتائج')}<div class="grid">${pick(items, 4).map(card).join('')}</div></section>`).join('');
 
   const bestList = pick([...inStock].sort((x, y) => y.reviews_count - x.reviews_count).slice(0, 12), 8);
   if (bestList.length) { $('#best-sec').hidden = false; $('#best').innerHTML = bestList.map(card).join(''); }
   const recentSlugs = (() => { try { return JSON.parse(localStorage.getItem('kt_recent') || '[]').slice(0, 8); } catch { return []; } })();
   const recentList = recentSlugs.map(sl => prof.by[sl]).filter(Boolean);
   if (recentList.length) { $('#recent-sec').hidden = false; $('#recent').innerHTML = recentList.map(card).join(''); }
+
+  /* اكتشف المزيد: كل المنتجات بترتيب عشوائي جديد مع كل ريفرش، وزر "عرض المزيد" */
+  const feed = D.shuffle(inStock.length ? inStock : all), STEP = 8; let shown = 0;
+  const more = () => { const chunk = feed.slice(shown, shown + STEP); $('#feed').insertAdjacentHTML('beforeend', chunk.map(card).join('')); shown += chunk.length; $('#feed-more').parentElement.hidden = shown >= feed.length; };
+  $('#feed-sec').hidden = false; more(); $('#feed-more').onclick = more;
 };
 
 /* ---------------- صفحات القوائم: الأقسام والعروض ---------------- */
 function listShell({ title, sub, icon, crumbs, sortable = true }) {
   $('#app').innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span>${crumbs}</nav>
   <div style="display:flex;gap:14px;align-items:center">${icon ? `<span class="cat__ic">${ic(icon)}</span>` : ''}<div><h1>${title}</h1>${sub ? `<p class="page__sub">${sub}</p>` : ''}</div></div>
-  <div class="toolbar"><div id="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>${sortable ? sortBar() : ''}</div><p id="count" class="count" aria-live="polite"></p><div class="grid" id="grid" style="margin-top:12px">${skeletons(8)}</div></div>`;
+  <div class="toolbar"><div id="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>${sortable ? sortBar() : ''}${viewBar()}</div><p id="count" class="count" aria-live="polite"></p><div class="grid${viewMode() === 'list' ? ' grid--list' : ''}" id="grid" style="margin-top:12px">${skeletons(8)}</div></div>`;
+  $$('[data-view]').forEach(b => b.onclick = () => {
+    const m = b.dataset.view; try { localStorage.setItem('kt_view', m); } catch { /* */ }
+    $$('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $$('#grid, .grid[data-follow-view]').forEach(g => g.classList.toggle('grid--list', m === 'list'));
+  });
 }
 const chipsRow = (cats, cur) => `<a class="chip" href="/shop.html" aria-current="false">الكل</a><a class="chip" href="/offers/" aria-current="${cur === 'offers'}">العروض</a><a class="chip" href="/yours-offer" aria-current="false">عروضك</a>` + cats.map(c => `<a class="chip" href="${curl(c.slug)}" aria-current="${cur === c.slug}">${esc(c.name)}</a>`).join('');
 
 pages.category = async () => {
   const slug = location.pathname.match(/^\/category\/([^/]+)/)?.[1] || params.get('c') || '';
   const cats = await loadCats(), cur = cats.find(c => c.slug === slug);
-  if (!cur) { $('#app').innerHTML = `<div class="wrap page">${emptyBox('هذا القسم غير موجود.', '/shop.html', 'كل المنتجات')}</div>`; return; }
+  if (!cur) { $('#app').innerHTML = `<div class="wrap page">${emptyBox('هذا القسم غير موجود.', '/shop.html', 'كل المنتجات', 'notfound')}</div>`; return; }
   document.title = `${cur.name} | Kitchenly`; setHashtag(`#${cur.name.trim().replace(/\s+/g, '_')}`);
   listShell({ title: esc(cur.name), sub: 'كل منتجات هذا القسم', icon: cur.slug, crumbs: `<a href="/shop.html">المنتجات</a><span>/</span><span>${esc(cur.name)}</span>` });
   $('#chips').innerHTML = chipsRow(cats, slug);
   D.addCat(slug);
   let list = [], fy = [], s = 'for-you'; $('#sort').value = s;
-  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.'); };
+  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
   try { list = await db.products({ cat: slug }); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
@@ -106,7 +138,7 @@ pages.offers = async () => {
   listShell({ title: 'العروض والخصومات', sub: 'منتجات عليها خصم حقيقي، والكمية محدودة', icon: 'offers', crumbs: '<span>العروض</span>' });
   const cats = await loadCats(); $('#chips').innerHTML = chipsRow(cats, 'offers');
   let list = [], s = 'discount'; $('#sort').value = s;
-  const draw = () => { $('#count').textContent = `${list.length} منتج عليه خصم`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد عروض حاليًا، تابعنا قريبًا.'); };
+  const draw = () => { $('#count').textContent = `${list.length} منتج عليه خصم`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد عروض حاليًا، تابعنا قريبًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
   try { list = await db.products({ sale: true }); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
@@ -128,10 +160,10 @@ pages.shop = async () => {
 
   if (isImg) {
     let r = null; try { r = JSON.parse(sessionStorage.getItem('kt_img') || 'null'); } catch { /* */ }
-    if (!r) { grid.innerHTML = emptyBox('ارفع صورة من أيقونة الكاميرا في شريط البحث.'); return; }
+    if (!r) { grid.innerHTML = emptyBox('ارفع صورة من أيقونة الكاميرا في شريط البحث وهنوصلك لأقرب منتج.', '', '', 'imgsearch'); return; }
     const all = await loadAll(), by = Object.fromEntries(all.map(p => [p.slug, p])), ex = r.exact.map(s => by[s]).filter(Boolean), sim = r.similar.map(s => by[s]).filter(Boolean);
     $('.page__sub').textContent = r.label ? `يبدو أن الصورة تحتوي على: ${r.label}` : '';
-    grid.outerHTML = aiBox(r.message || 'هذه أقرب نتائج وجدناها.', r.thumb) + (ex.length ? sec('مطابق للصورة', ex) : '') + (sim.length ? sec(ex.length ? 'منتجات مشابهة' : 'أقرب البدائل', sim) : '') + (!ex.length && !sim.length ? emptyBox('لم نجد منتجًا قريبًا من الصورة، جرّب صورة أوضح أو ابحث بالاسم.') : '');
+    grid.outerHTML = aiBox(r.message || 'هذه أقرب نتائج وجدناها.', r.thumb) + (ex.length ? sec('مطابق للصورة', ex) : '') + (sim.length ? sec(ex.length ? 'منتجات مشابهة' : 'أقرب البدائل', sim) : '') + (!ex.length && !sim.length ? emptyBox('لم نجد منتجًا قريبًا من الصورة، جرّب صورة أوضح أو ابحث بالاسم.', '/shop.html', 'تصفح المنتجات', 'search') : '');
     count.textContent = ''; return;
   }
 
@@ -153,13 +185,13 @@ pages.shop = async () => {
       const fallback = (await loadAll()).filter(p => p.featured).slice(0, 4);
       holder.innerHTML = aiBox(ai?.message || `لا يوجد منتج بهذا الاسم بالضبط. إليك أقرب ما لدينا.`) +
         (sug.length ? sec('اقتراحات تناسب بحثك', sug) : '') + (near.length ? sec('نتائج قريبة', near) : '') +
-        (!sug.length && !near.length ? sec('قد يعجبك', fallback) : '');
+        (!sug.length && !near.length ? `<div class="nores">${window.KTApp.stateImg('search')}<h2>مفيش نتائج لـ «${esc(q)}»</h2><p>جرّب كلمة تانية أو ابحث بالصورة، وده بعض ما قد يعجبك:</p></div>` + sec('قد يعجبك', fallback) : '');
     }
     return;
   }
 
   let list = [], fy = [];
-  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.'); };
+  const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
   $('#sort').value = sort;
   try { list = await db.products(); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); grid.innerHTML = errorBox(); }
   $('#sort').onchange = e => { sort = e.target.value; draw(); };
@@ -170,7 +202,7 @@ pages.product = async () => {
   const slug = document.body.dataset.slug || params.get('slug') || (location.pathname.match(/product-([a-z0-9-]+?)(?:\.html)?\/?$/) || [])[1];
   const app = $('#app'); app.innerHTML = `<div class="wrap page"><div class="skel" style="height:420px"></div></div>`;
   const p = slug ? await db.product(slug) : null;
-  if (!p) { document.title = 'المنتج غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المنتج. ربما تم إيقافه أو تغير رابطه.')}</div>`; return; }
+  if (!p) { document.title = 'المنتج غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المنتج. ربما تم إيقافه أو تغير رابطه.', '/shop.html', 'تصفح المنتجات', 'notfound')}</div>`; return; }
   document.title = `${p.name} | Kitchenly`; window.KTApp.recent(p.slug);
   if (p.category) setHashtag(`#${p.category.name.trim().replace(/\s+/g, '_')}`);
   const d = discount(p), out = p.stock < 1, feats = Array.isArray(p.features) ? p.features : [];
@@ -210,7 +242,7 @@ pages.cart = async () => {
   const app = $('#app');
   const draw = () => {
     const items = Cart.read(), sub = Cart.subtotal(), sh = shipping(sub);
-    if (!items.length) { app.innerHTML = `<div class="wrap page">${emptyBox('سلتك فارغة حاليًا.')}</div>`; return; }
+    if (!items.length) { app.innerHTML = `<div class="wrap page">${emptyBox('سلتك فارغة حاليًا، ابدأ بإضافة منتجات.', '/shop.html', 'ابدأ التسوق', 'cart')}</div>`; return; }
     const left = Math.max(0, K.freeShipFrom - sub);
     app.innerHTML = `<div class="wrap page"><h1>سلة التسوق</h1><div class="cols" style="margin-top:20px">
     <ul style="display:grid;gap:12px">${items.map(i => `<li class="card line"><a href="${purl(i)}"><img src="${esc(imgSrc(i))}" alt=""></a><div class="line__b"><a href="${purl(i)}" style="font-weight:500">${esc(i.name)}</a><span style="color:var(--muted);font-size:.9rem">${money(i.price)}</span>
@@ -240,7 +272,7 @@ const GOV = ['القاهرة', 'الجيزة', 'الإسكندرية', 'القل
 const ERR = { invalid_name: 'تأكد من كتابة الاسم', invalid_phone: 'رقم الموبايل يجب أن يكون 11 رقمًا ويبدأ بـ 01', invalid_city: 'اختر المحافظة', invalid_address: 'اكتب عنوانًا واضحًا', empty_cart: 'السلة فارغة', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة', invalid_payment: 'اختر طريقة دفع صحيحة' };
 pages.checkout = async () => {
   const items = Cart.read(), app = $('#app');
-  if (!items.length) { app.innerHTML = `<div class="wrap page">${emptyBox('سلتك فارغة، أضف منتجات أولًا.')}</div>`; return; }
+  if (!items.length) { app.innerHTML = `<div class="wrap page">${emptyBox('سلتك فارغة، أضف منتجات أولًا.', '/shop.html', 'ابدأ التسوق', 'cart')}</div>`; return; }
   const sub = Cart.subtotal(), sh = shipping(sub), meta = window.KTApp.session?.user?.user_metadata || {};
   const methods = Object.entries(K.payments).filter(([, v]) => v.enabled), first = methods[0]?.[0];
   app.innerHTML = `<div class="wrap page"><h1>إتمام الطلب</h1>
@@ -281,7 +313,7 @@ pages.success = () => {
     const u = P.online?.checkoutUrl;
     box = `<div class="paybox"><b>الدفع أونلاين</b>${payLogos(['paymob', 'visa'])}<p style="margin-top:6px">${u ? 'أكمل الدفع بأمان من خلال الزر التالي.' : 'سنرسل لك رابط الدفع الآمن على رقم الموبايل.'}</p>${u ? `<a class="btn btn-primary" style="margin-top:10px" href="${esc(u)}${u.includes('?') ? '&' : '?'}order=${encodeURIComponent(no || '')}&amount=${encodeURIComponent(total || '')}">ادفع الآن</a>` : ''}</div>`;
   }
-  $('#app').innerHTML = `<div class="wrap page"><div class="card center wide" style="text-align:center">${ic('st-new', 'hero-ic')}<h1>تم استلام طلبك</h1>
+  $('#app').innerHTML = `<div class="wrap page"><div class="card center wide" style="text-align:center"><img class="hero-ic hero-ic--ok" src="/assets/img/states/order-success.webp" alt="" width="150" height="150"><h1>تم استلام طلبك</h1>
   <p class="page__sub">سنتواصل معك على رقم الموبايل لتأكيد الطلب وموعد التوصيل.</p>
   ${no ? `<p style="margin-top:20px;color:var(--muted);font-size:.9rem">رقم الطلب</p><p style="font-size:1.6rem;font-weight:600;color:var(--green-d)" dir="ltr">${esc(no)}</p>${total ? `<p>الإجمالي ${money(total)}</p>` : ''}` : ''}${box}
   <div class="buyrow" style="justify-content:center;margin-top:24px"><a class="btn btn-primary" href="/track.html${no ? `?no=${encodeURIComponent(no)}` : ''}">تتبع الطلب</a><a class="btn btn-ghost" href="/shop.html">متابعة التسوق</a></div></div></div>`;
@@ -289,12 +321,12 @@ pages.success = () => {
 
 /* ---------------- تتبع الطلب ---------------- */
 const STEPS = ['new', 'confirmed', 'shipping', 'delivered'];
-const STEP_IC = { new: 'st-new', confirmed: 'check', shipping: 'st-ship', delivered: 'st-done' };
+const STEP_IC = { new: 'st-new', confirmed: 'st-ok', shipping: 'st-ship', delivered: 'st-done' };
 function orderCard(o) {
   const idx = STEPS.indexOf(o.status), cancelled = o.status === 'cancelled';
   return `<article class="card order"><div class="order__head"><h3 dir="ltr">${esc(o.order_no)}</h3><span class="status ${cancelled ? 'bad' : ''}">${STATUS[o.status]}</span></div>
   ${o.created_at ? `<p class="order__date">${new Date(o.created_at).toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' })}</p>` : ''}
-  ${cancelled ? '' : `<div class="order__now">${ic(STEP_IC[o.status] || 'box', 'now-ic')}<b>${STATUS[o.status]}</b></div><ol class="steps">${STEPS.map((s, i) => `<li class="${i <= idx ? 'on' : ''} ${i === idx ? 'cur' : ''}">${ic(STEP_IC[s], 'step-ic')}<i></i>${STATUS[s]}</li>`).join('')}</ol>`}
+  ${cancelled ? `<div class="order__now order__now--bad">${ic('st-cancel', 'now-ic')}<b>${STATUS.cancelled}</b></div>` : `<div class="order__now">${ic(STEP_IC[o.status] || 'box', 'now-ic')}<b>${STATUS[o.status]}</b></div><ol class="steps">${STEPS.map((s, i) => `<li class="${i <= idx ? 'on' : ''} ${i === idx ? 'cur' : ''}">${ic(STEP_IC[s], 'step-ic')}<i></i>${STATUS[s]}</li>`).join('')}</ol>`}
   <ul class="rows" style="border-top:1px solid var(--line);padding-top:12px">${(o.items || []).map(i => `<li style="display:flex;justify-content:space-between;gap:12px"><span>${esc(i.name)} <span style="color:var(--muted)">x${i.qty}</span></span><span>${money(i.price * i.qty)}</span></li>`).join('')}</ul>
   <dl class="rows"><div><dt>الدفع</dt><dd>${PAYNAME[o.payment_method] || ''}</dd></div><div><dt>الشحن</dt><dd>${+o.shipping ? money(o.shipping) : 'مجاني'}</dd></div><div class="tot"><dt>الإجمالي</dt><dd>${money(o.total)}</dd></div></dl>
   <p style="font-size:.82rem;color:var(--muted)">${esc(o.city)} - ${esc(o.address)}</p></article>`;
@@ -349,7 +381,7 @@ pages.contact = () => {
     b.disabled = false; if (error) return toast('تعذر إرسال الرسالة، حاول مرة أخرى', 'err'); e.currentTarget.reset(); toast('تم إرسال رسالتك، شكرًا لتواصلك');
   });
 };
-pages.notfound = () => { $('#app').innerHTML = `<div class="wrap page">${emptyBox('الصفحة التي تبحث عنها غير موجودة.', '/', 'العودة للرئيسية')}</div>`; };
+pages.notfound = () => { $('#app').innerHTML = `<div class="wrap page">${emptyBox('الصفحة التي تبحث عنها غير موجودة.', '/', 'العودة للرئيسية', 'notfound')}</div>`; };
 /* صفحة السياسات القديمة: نحوّل للصفحات الجديدة */
 pages.policies = () => { location.replace(location.hash === '#privacy' ? '/privacy' : `/policy${location.hash}`); };
 })();

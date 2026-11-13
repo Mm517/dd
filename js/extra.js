@@ -153,7 +153,7 @@ pages.myorders = async () => {
   const draw = () => {
     const f = FILTERS.find(x => x[0] === cur)[2], list = orders.filter(f);
     body.innerHTML = `<div class="chips-row">${FILTERS.map(([k, t, fn]) => `<button class="chip" data-f="${k}" aria-current="${k === cur}">${t} (${orders.filter(fn).length})</button>`).join('')}</div>
-    <div style="display:grid;gap:16px;margin-top:16px">${list.length ? list.map(o => `<div class="ordwrap">${A.orderCard(o)}<div class="ordwrap__act"><a class="btn btn-primary btn-sm" href="/track.html?no=${encodeURIComponent(o.order_no)}">${ic('box', 'ico-sm')}تتبّع الطلب</a>${o.status === 'delivered' ? '<a class="btn btn-ghost btn-sm" href="/profile/my-reviews">قيّم منتجاتك</a>' : ''}${['new', 'confirmed'].includes(o.status) ? '<a class="btn btn-ghost btn-sm" href="/policy#cancel">إلغاء الطلب</a>' : ''}</div></div>`).join('') : emptyBox(orders.length ? 'لا توجد طلبات في هذا التصنيف.' : 'لا توجد طلبات على حسابك بعد.')}</div>`;
+    <div style="display:grid;gap:16px;margin-top:16px">${list.length ? list.map(o => `<div class="ordwrap">${A.orderCard(o)}<div class="ordwrap__act"><a class="btn btn-primary btn-sm" href="/track.html?no=${encodeURIComponent(o.order_no)}">${ic('box', 'ico-sm')}تتبّع الطلب</a>${o.status === 'delivered' ? '<a class="btn btn-ghost btn-sm" href="/profile/my-reviews">قيّم منتجاتك</a>' : ''}${['new', 'confirmed'].includes(o.status) ? '<a class="btn btn-ghost btn-sm" href="/policy#cancel">إلغاء الطلب</a>' : ''}</div></div>`).join('') : emptyBox(orders.length ? 'لا توجد طلبات في هذا التصنيف.' : 'لا توجد طلبات على حسابك بعد.', '/shop.html', 'ابدأ التسوق', 'orders')}</div>`;
     $$('[data-f]', body).forEach(b => b.onclick = () => { cur = b.dataset.f; draw(); });
   };
   draw();
@@ -198,7 +198,7 @@ pages.yours = async () => {
     const [sale, seen] = await Promise.all([db.products({ sale: true }), weights.size ? db.bySlugs([...weights.keys()]) : Promise.resolve([])]);
     const catW = new Map(), catName = new Map();
     seen.forEach(p => { const c = p.category?.slug; if (c) { catW.set(c, (catW.get(c) || 0) + (weights.get(p.slug) || 0)); catName.set(c, p.category.name); } });
-    if (!sale.length) { sub.textContent = 'لا توجد عروض حاليًا، تابعنا قريبًا.'; body.innerHTML = emptyBox('لا توجد عروض حاليًا.'); return; }
+    if (!sale.length) { sub.textContent = 'لا توجد عروض حاليًا، تابعنا قريبًا.'; body.innerHTML = emptyBox('لا توجد عروض حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); return; }
     const byDisc = (a, b) => discount(b) - discount(a);
     const fav = sale.filter(p => catW.has(p.category?.slug)).sort((a, b) => (catW.get(b.category.slug) - catW.get(a.category.slug)) || byDisc(a, b));
     const rest = sale.filter(p => !catW.has(p.category?.slug)).sort(byDisc);
@@ -299,5 +299,17 @@ pages.join = () => {
     b.disabled = false; if (error) return show('تعذر إرسال الطلب، حاول مرة أخرى');
     $('#jf').hidden = true; $('#j-ok').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+};
+
+/* =====================================================================
+   من نحن: /about  (صورة الفريق + أسباب الثقة)
+   ===================================================================== */
+pages.about = () => {
+  const pts = [['box', 'تجهيز وتغليف بعناية', 'كل طلب بيتجهّز ويتراجع قبل ما يخرج، ويتغلّف بشكل يحميه في الطريق.'], ['truck', 'توصيل لكل المحافظات', `شحن لجميع محافظات مصر، ومجاني للطلبات فوق ${money(K.freeShipFrom)}.`], ['check', 'جودة مضمونة', 'منتجاتنا مختارة ومجرّبة، والاستبدال متاح خلال 14 يومًا.']];
+  $('#app').innerHTML = `<div class="wrap page"><div class="about">
+    <figure class="about__hero"><img src="/assets/img/states/team.webp" alt="فريق تجهيز وتغليف الطلبات في المخزن" width="1200" height="931" loading="eager" decoding="async"><figcaption><h1>إحنا Kitchenly</h1><p>فريق بيجهّز طلبك بإيده، من المخزن لباب بيتك.</p></figcaption></figure>
+    <p class="about__lead">بدأنا Kitchenly عشان نوفّر أدوات تنظيف وتنظيم للمطبخ بجودة تعتمد عليها وسعر عادل. بنختار كل منتج بنفسنا، ونجهّز كل طلب بعناية، ونوصّله لحد بابك.</p>
+    <div class="about__pts">${pts.map(([i, t, d]) => `<div class="card about__pt">${ic(i, 'ico-lg')}<h2>${t}</h2><p>${d}</p></div>`).join('')}</div>
+    <div class="about__cta"><a class="btn btn-primary" href="/shop.html">ابدأ التسوق</a><a class="btn btn-ghost" href="/contact.html">تواصل معنا</a><a class="btn btn-ghost" href="/join-us">انضم إلينا</a></div></div></div>`;
 };
 })();

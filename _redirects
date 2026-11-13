@@ -1,4 +1,11 @@
-/product-*.html  /product.html  200
+/product-:slug.html  /product/:slug  301!
+/admin.html  /admin  301!
+/product/:slug  /product.html  200
+/store/:slug  /store/index.html  200
+/be-seller  /be-seller/index.html  200
+/be-seller/*  /be-seller/index.html  200
+/admin  /admin/index.html  200
+/admin/*  /admin/index.html  200
 /category/*  /category/index.html  200
 /offers  /offers/index.html  200
 /Yours-offer  /yours-offer  301

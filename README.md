@@ -9,8 +9,9 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 | كل قسم | `/category/<slug>` مثل `/category/sponges` |
 | العروض | `/offers/` |
 | المنتجات والبحث | `/shop.html` و `/shop.html?q=...` |
-| منتج | `/product-<slug>.html` |
-| سلة، دفع، تتبع، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `auth.html` `admin.html` |
+| منتج | `/product/<slug>` (الروابط القديمة `/product-<slug>.html` بتتحول تلقائيًا) |
+| صفحة متجر بائع | `/store/<slug>` |
+| سلة، دفع، تتبع، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `auth.html` |
 | البروفايل | `/profile` ، `/profile/my-orders` ، `/profile/my-reviews` |
 | مساعدة، خصوصية، سياسات، انضم إلينا، عروضك | `/help` ، `/privacy` ، `/policy` ، `/join-us` ، `/yours-offer` |
 
@@ -75,3 +76,22 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 
 ## الأيقونات
 صور 3D في `assets/img/icons/` وتتحدد من `ICONIMG` في `js/app.js` (الأقسام، العروض، حالات الطلب، انضم إلينا).
+
+
+## السوق (متاجر البائعين)
+صفحتان كاملتان مستقلتان عن الموقع (بدون هيدر ولا بحث): `css/panel.css` + `js/panel.js` (النواة المشتركة) + `js/seller.js` أو `js/admin-panel.js`. الراوتر بـ History API وقواعد rewrite في `vercel.json` و `_redirects`.
+
+**البائع `/be-seller/...`**: `login` `signup` `dashboard` `dashboard/orders` `dashboard/products` `dashboard/payouts` `dashboard/analystics` `dashboard/campings` `dashboard/campings/ads` `dashboard/store` `dashboard/settings` `dashboard/help`
+
+**الأدمن `/admin/...`**: `/` `orders` `products` `product-requests` `categories` `stores` `seller-request` `ads` `money` `analistcs` `customers` `messages`
+
+### التشغيل (مرة واحدة على Supabase → SQL Editor، بالترتيب)
+1. `supabase/seller-marketplace.sql`
+2. `supabase/seller-marketplace-patch.sql` (منع حذف منتج عليه طلبات، قفل السحب، قفل المتجر الموقوف)
+
+### الإعلانات والمشاهدات
+الرئيسية وصفحات الأقسام والمنتجات بتعرض إعلانات نشطة (`kt_active_ads`) بعلامة «مُموّل»، وبتسجّل ظهور/نقرة (`kt_ad_event`) مرة لكل جلسة. صفحة المنتج بتسجّل مشاهدة (`kt_track_view`) للتحليلات.
+
+### ملاحظات مهمة
+- الواجهة العامة بتفلتر `approval_status = 'approved'` لأن الأدمن والبائع بيشوفوا غير المعتمد بسبب RLS.
+- دالة `kt_place_order` ودالة `ai-search` (Edge Function) لازم تتأكد إنها بتتجاهل المنتجات غير المعتمدة / متجرها غير مفعّل.

@@ -68,6 +68,7 @@ pages.home = async () => {
     <section class="sec" id="feed-sec" hidden>${head('اكتشف المزيد', 'مختارة عشوائيًا، وبتتغيّر كل ما تفتح الصفحة')}<div class="grid" id="feed"></div><div class="feed__more"><button class="btn btn-ghost" id="feed-more" type="button">عرض المزيد</button></div></section>
     ${newsBox()}</div>`;
   bindBanner(); bindNews();
+  mountAds('home', $('#deals-sec'), { title: 'مختارات مموّلة' });
 
   let cats = [], prof = null;
   try { [cats, prof] = await Promise.all([loadCats(), D.profile()]); } catch (e) { console.error(e); }
@@ -130,6 +131,7 @@ pages.category = async () => {
   D.addCat(slug);
   let list = [], fy = [], s = 'for-you'; $('#sort').value = s;
   const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? (s === 'for-you' ? fy : sortList(list, s)).map(card).join('') : emptyBox('لا توجد منتجات في هذا القسم حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
+  mountAds('category', $('#count'), { title: 'مموّل في هذا القسم' });
   try { list = await db.products({ cat: slug }); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
   $('#sort').onchange = e => { s = e.target.value; draw(); };
 };
@@ -193,13 +195,14 @@ pages.shop = async () => {
   let list = [], fy = [];
   const draw = () => { count.textContent = `${list.length} منتج`; grid.innerHTML = list.length ? (sort === 'for-you' ? fy : sortList(list, sort)).map(card).join('') : emptyBox('لا توجد منتجات حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
   $('#sort').value = sort;
+  mountAds('shop', $('#count'), { title: 'مموّل' });
   try { list = await db.products(); fy = D.rank(list, await D.profile().catch(() => ({ prodW: new Map(), catW: new Map() })), 2); draw(); } catch (e) { console.error(e); grid.innerHTML = errorBox(); }
   $('#sort').onchange = e => { sort = e.target.value; draw(); };
 };
 
 /* ---------------- صفحة المنتج ---------------- */
 pages.product = async () => {
-  const slug = document.body.dataset.slug || params.get('slug') || (location.pathname.match(/product-([a-z0-9-]+?)(?:\.html)?\/?$/) || [])[1];
+  const slug = (location.pathname.match(/^\/product\/([a-z0-9-]+)\/?$/) || [])[1] || (location.pathname.match(/product-([a-z0-9-]+?)(?:\.html)?\/?$/) || [])[1] || params.get('slug');
   const app = $('#app'); app.innerHTML = `<div class="wrap page"><div class="skel" style="height:420px"></div></div>`;
   const p = slug ? await db.product(slug) : null;
   if (!p) { document.title = 'المنتج غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المنتج. ربما تم إيقافه أو تغير رابطه.', '/shop.html', 'تصفح المنتجات', 'notfound')}</div>`; return; }
@@ -208,7 +211,7 @@ pages.product = async () => {
   const d = discount(p), out = p.stock < 1, feats = Array.isArray(p.features) ? p.features : [];
   app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><a href="/shop.html">المنتجات</a>${p.category ? `<span>/</span><a href="${curl(p.category.slug)}">${esc(p.category.name)}</a>` : ''}<span>/</span><span>${esc(p.name)}</span></nav>
   <div class="pgrid"><div class="pgal"><div class="pimg"><img id="pmain" src="${esc(imgSrc(p))}" alt="${esc(p.name)}">${d ? `<span class="pcard__off">خصم ${d}%</span>` : ''}</div><div class="pthumbs" id="pthumbs" hidden></div></div>
-  <div class="pinfo"><h1>${esc(p.name)}</h1><a href="#reviews" class="stars stars--link" id="prod-rating" style="margin-top:8px">${p.reviews_count > 0 ? `${stars(p.rating)}<span>${p.rating} (${p.reviews_count} تقييم)</span>` : '<span class="newtag">لا تقييمات بعد، كن أول من يقيّم</span>'}</a>
+  <div class="pinfo"><h1>${esc(p.name)}</h1><p class="soldby" id="soldby" hidden></p><a href="#reviews" class="stars stars--link" id="prod-rating" style="margin-top:8px">${p.reviews_count > 0 ? `${stars(p.rating)}<span>${p.rating} (${p.reviews_count} تقييم)</span>` : '<span class="newtag">لا تقييمات بعد، كن أول من يقيّم</span>'}</a>
     <div class="price" style="margin-top:14px"><b>${money(p.price)}</b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>
     <p class="pinfo__desc">${esc(p.description)}</p>
     ${feats.length ? `<ul class="ticks">${feats.map(f => `<li>${ic('check')}${esc(f)}</li>`).join('')}</ul>` : ''}
@@ -229,6 +232,9 @@ pages.product = async () => {
     box.addEventListener('click', e => { const b = e.target.closest('.pthumb'); if (b) pick(+b.dataset.i); });
     box.addEventListener('pointerover', e => { const b = e.target.closest('.pthumb'); if (b && e.pointerType !== 'touch') pick(+b.dataset.i); });
   })();
+  /* البائع + تتبع المشاهدة (مرة لكل جلسة) */
+  if (p.store_id) db.storeById(p.store_id).then(st => { const el = $('#soldby'); if (st && el) { el.innerHTML = `${ic('box', 'ico-sm')} يباع بواسطة <a href="/store/${esc(st.slug)}">${esc(st.name)}</a>`; el.hidden = false; } }).catch(() => {});
+  try { const k = `kt_pv_${p.slug}`; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); sb.rpc('kt_track_view', { p_slug: p.slug }).then(() => {}, () => {}); } } catch { /* */ }
   if (window.KTApp.mountReviews) window.KTApp.mountReviews(p, $('#reviews'));
   let q = 1; const max = Math.min(p.stock, 20), set = v => { q = Math.max(1, Math.min(v, max || 1)); $('#qv').textContent = q; };
   $('#qm').onclick = () => set(q - 1); $('#qp').onclick = () => set(q + 1);
@@ -384,4 +390,43 @@ pages.contact = () => {
 pages.notfound = () => { $('#app').innerHTML = `<div class="wrap page">${emptyBox('الصفحة التي تبحث عنها غير موجودة.', '/', 'العودة للرئيسية', 'notfound')}</div>`; };
 /* صفحة السياسات القديمة: نحوّل للصفحات الجديدة */
 pages.policies = () => { location.replace(location.hash === '#privacy' ? '/privacy' : `/policy${location.hash}`); };
+
+/* ---------------- الإعلانات المموّلة (kt_active_ads) ---------------- */
+const adEvent = (ad, kind) => { try { fetch(`${K.url}/rest/v1/rpc/kt_ad_event`, { method: 'POST', keepalive: true, headers: { apikey: K.key, Authorization: `Bearer ${K.key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_ad: ad, p_kind: kind }) }).catch(() => {}); } catch { /* */ } };
+const once = k => { try { if (sessionStorage.getItem(k)) return false; sessionStorage.setItem(k, '1'); } catch { /* */ } return true; };
+async function mountAds(placement, before, { title = 'منتجات مموّلة', n = 4 } = {}) {
+  if (!before || !before.parentNode) return;
+  try {
+    const { data, error } = await sb.rpc('kt_active_ads', { p_placement: placement }); if (error || !data || !data.length) return;
+    const list = data.slice(0, n), prods = await db.bySlugs(list.map(a => a.slug)), by = Object.fromEntries(prods.map(p => [p.slug, p]));
+    const rows = list.filter(a => by[a.slug]); if (!rows.length) return;
+    const sec = document.createElement('section'); sec.className = 'sec sec--ads';
+    sec.innerHTML = head(title, 'إعلانات من متاجر شريكة') + `<div class="grid">${rows.map(a => card(by[a.slug]).replace('<article class="pcard">', `<article class="pcard pcard--ad" data-ad="${esc(a.ad_id)}"><span class="pcard__sp">مُموّل</span>`)).join('')}</div>`;
+    before.parentNode.insertBefore(sec, before);
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); const id = e.target.dataset.ad; if (once(`kt_ai_${id}`)) adEvent(id, 'impression'); } }), { threshold: .5 }) : null;
+    $$('[data-ad]', sec).forEach(el => io ? io.observe(el) : (once(`kt_ai_${el.dataset.ad}`) && adEvent(el.dataset.ad, 'impression')));
+    sec.addEventListener('click', e => { const a = e.target.closest('a[href]'), c = e.target.closest('[data-ad]'); if (a && c && once(`kt_ac_${c.dataset.ad}`)) adEvent(c.dataset.ad, 'click'); });
+  } catch (e) { console.warn('ads', e.message); }
+}
+
+/* ---------------- صفحة المتجر /store/<slug> ---------------- */
+pages.store = async () => {
+  const slug = (location.pathname.match(/^\/store\/([a-z0-9-]+)\/?$/) || [])[1], app = $('#app');
+  app.innerHTML = `<div class="wrap page"><div class="skel" style="height:200px"></div><div class="grid" style="margin-top:20px">${skeletons(4)}</div></div>`;
+  const st = slug ? await db.store(slug).catch(() => null) : null;
+  if (!st) { document.title = 'المتجر غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المتجر. ربما تم إيقافه أو تغير رابطه.', '/shop.html', 'تصفح المنتجات', 'notfound')}</div>`; return; }
+  document.title = `${st.name} | Kitchenly`; setHashtag(`#${st.name.trim().replace(/\s+/g, '_')}`);
+  app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><span>${esc(st.name)}</span></nav>
+  <header class="storehd"${st.cover ? ` style="background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${esc(st.cover)}')"` : ''}>
+    <span class="storehd__lg">${st.logo ? `<img src="${esc(st.logo)}" alt="">` : ic('box', 'ico-lg')}</span>
+    <div><h1>${esc(st.name)}</h1><p>${[st.city, 'متجر شريك على Kitchenly'].filter(Boolean).map(esc).join(' • ')}</p>${st.description ? `<p class="storehd__ds">${esc(st.description)}</p>` : ''}</div></header>
+  <div class="toolbar"><div style="flex:1"></div>${sortBar().replace('<option value="for-you">مختارة لك</option>', '').replace(/<option value="discount">[^<]*<\/option>/, '')}${viewBar()}</div>
+  <p id="count" class="count" aria-live="polite"></p><div class="grid${viewMode() === 'list' ? ' grid--list' : ''}" id="grid" style="margin-top:12px">${skeletons(4)}</div></div>`;
+  $$('[data-view]').forEach(b => b.onclick = () => { const m = b.dataset.view; try { localStorage.setItem('kt_view', m); } catch { /* */ } $$('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#grid').classList.toggle('grid--list', m === 'list'); });
+  let list = [], s = 'new'; $('#sort').value = s;
+  const draw = () => { $('#count').textContent = `${list.length} منتج`; $('#grid').innerHTML = list.length ? sortList(list, s).map(card).join('') : emptyBox('لا توجد منتجات في هذا المتجر حاليًا.', '/shop.html', 'تصفح المنتجات', 'search'); };
+  try { list = await db.byStore(st.id); draw(); } catch (e) { console.error(e); $('#grid').innerHTML = errorBox(); }
+  $('#sort').onchange = e => { s = e.target.value; draw(); };
+};
+
 })();

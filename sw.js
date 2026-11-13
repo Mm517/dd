@@ -1,6 +1,6 @@
 /* Kitchenly service worker: يخلّي الموقع يتثبّت كتطبيق ويفتح بسرعة وبدون اتصال (للصفحات اللي اتفتحت قبل كده). */
-const V = 'kt-v1', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
-const SHELL = ['/offline.html', '/css/main.css', '/js/config.js', '/js/app.js', '/js/store.js', '/js/account.js', '/js/extra.js', '/js/admin.js', '/assets/icons/icon-192.png', '/assets/img/logo-mark.jpg'];
+const V = 'kt-v2', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
+const SHELL = ['/offline.html', '/css/main.css', '/js/config.js', '/js/app.js', '/js/store.js', '/js/account.js', '/js/extra.js', '/assets/icons/icon-192.png', '/assets/img/logo-mark.jpg'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(STATIC).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
@@ -14,6 +14,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   if (url.origin !== location.origin) return;            // Supabase والخطوط والـ CDN: من الشبكة دايمًا
   if (url.pathname === '/sw.js') return;
+  if (/^\/(admin|be-seller)(\/|$)/.test(url.pathname) || url.pathname === '/css/panel.css' || /^\/js\/(panel|seller|admin-panel)\.js$/.test(url.pathname)) return;   // اللوحات دايمًا من الشبكة
 
   /* الصفحات: الشبكة أولًا (عشان الأسعار والمخزون)، ولو مفيش نت نعرض آخر نسخة أو صفحة offline */
   if (req.mode === 'navigate') {

@@ -1,12 +1,32 @@
 {
   "rewrites": [
     {
-      "source": "/about",
-      "destination": "/about/index.html"
+      "source": "/product/:slug",
+      "destination": "/product.html"
     },
     {
-      "source": "/product-:slug.html",
-      "destination": "/product.html"
+      "source": "/store/:slug",
+      "destination": "/store/index.html"
+    },
+    {
+      "source": "/be-seller",
+      "destination": "/be-seller/index.html"
+    },
+    {
+      "source": "/be-seller/:path*",
+      "destination": "/be-seller/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
     },
     {
       "source": "/category/:slug",
@@ -88,9 +108,32 @@
           "value": "public, max-age=604800"
         }
       ]
+    },
+    {
+      "source": "/(be-seller|admin)(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
     }
   ],
   "redirects": [
+    {
+      "source": "/product-:slug.html",
+      "destination": "/product/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/admin.html",
+      "destination": "/admin",
+      "permanent": true
+    },
     {
       "source": "/Yours-offer",
       "destination": "/yours-offer",

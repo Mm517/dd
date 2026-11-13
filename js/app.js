@@ -8,7 +8,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = n => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 const money = n => `${fmt(n)} جنيه`;
-const purl = p => `/product-${p.slug}.html`;
+const purl = p => `/product/${p.slug}`;
 const curl = slug => `/category/${slug}`;
 const params = new URLSearchParams(location.search);
 
@@ -101,7 +101,7 @@ const remember = list => { (list || []).forEach(p => { PC[p.slug] = p; }); retur
 const db = {
   async categories() { const { data, error } = await sb.from('kt_categories').select('*').order('sort'); if (error) throw error; return data; },
   async products({ cat, sort = 'new', featured, limit, exclude, sale } = {}) {
-    let query = sb.from('kt_products').select(cat ? '*, category:kt_categories!inner(slug,name)' : '*, category:kt_categories(slug,name)').eq('active', true);
+    let query = sb.from('kt_products').select(cat ? '*, category:kt_categories!inner(slug,name)' : '*, category:kt_categories(slug,name)').eq('active', true).eq('approval_status', 'approved');
     if (cat) query = query.eq('category.slug', cat);
     if (featured) query = query.eq('featured', true);
     if (exclude) query = query.neq('slug', exclude);
@@ -114,12 +114,19 @@ const db = {
     return remember(sale ? data.filter(p => p.old_price > p.price) : data);
   },
   async product(slug) {
-    const { data, error } = await sb.from('kt_products').select('*, category:kt_categories(slug,name)').eq('slug', slug).eq('active', true).maybeSingle();
+    const { data, error } = await sb.from('kt_products').select('*, category:kt_categories(slug,name)').eq('slug', slug).eq('active', true).eq('approval_status', 'approved').maybeSingle();
     if (error) throw error; if (data) remember([data]); return data;
+  },
+  async store(slug) { const { data, error } = await sb.from('kt_stores_public').select('*').eq('slug', slug).maybeSingle(); if (error) throw error; return data; },
+  async storeById(id) { if (!id) return null; const { data } = await sb.from('kt_stores_public').select('id,name,slug,logo,city').eq('id', id).maybeSingle(); return data; },
+  async byStore(id, sort = 'new') {
+    let q = sb.from('kt_products').select('*, category:kt_categories(slug,name)').eq('store_id', id).eq('active', true).eq('approval_status', 'approved');
+    q = sort === 'price-asc' ? q.order('price', { ascending: true }) : sort === 'price-desc' ? q.order('price', { ascending: false }) : q.order('created_at', { ascending: false });
+    const { data, error } = await q; if (error) throw error; return remember(data);
   },
   async bySlugs(slugs) {
     if (!slugs.length) return [];
-    const { data, error } = await sb.from('kt_products').select('*, category:kt_categories(slug,name)').in('slug', slugs).eq('active', true); if (error) throw error; return remember(data);
+    const { data, error } = await sb.from('kt_products').select('*, category:kt_categories(slug,name)').in('slug', slugs).eq('active', true).eq('approval_status', 'approved'); if (error) throw error; return remember(data);
   }
 };
 let CATS = null;
@@ -353,7 +360,7 @@ function renderTabbar(page) {
 function renderFooter() {
   const l = (h, t) => `<a href="${h}">${t}</a>`;
   $('#site-footer').innerHTML = `<footer class="ftr"><div class="wrap"><div class="ftr__row"><a href="/" class="logo" aria-label="Kitchenly"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY</a>
-  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/about', 'من نحن')}<a href="#" data-install-link ${isStandalone() || !isIOS ? 'hidden' : ''}>ثبّت التطبيق</a>${l('/contact.html', 'تواصل معنا')}</nav></div>
+  <nav class="ftr__links" aria-label="روابط">${l('/shop.html', 'المنتجات')}${l('/offers/', 'العروض')}${l('/yours-offer', 'عروضك')}${l('/track.html', 'تتبع طلبك')}${l('/help', 'المساعدة')}${l('/about', 'من نحن')}${l('/be-seller/signup', 'بيع على Kitchenly')}<a href="#" data-install-link ${isStandalone() || !isIOS ? 'hidden' : ''}>ثبّت التطبيق</a>${l('/contact.html', 'تواصل معنا')}</nav></div>
   <nav class="ftr__links ftr__legal" aria-label="السياسات">${l('/policy', 'سياسات المتجر')}${l('/policy#returns', 'الاستبدال والاسترجاع')}${l('/privacy', 'سياسة الخصوصية')}${l('/policy#terms', 'الشروط والأحكام')}${l('/join-us', 'انضم إلينا')}</nav>
   <div class="ftr__pay"><span>وسائل الدفع</span>${payLogos(['instapay'], 'on-dark')}${payLogos(['paymob', 'visa'], 'on-dark')}</div>
   <p class="ftr__copy">جميع الحقوق محفوظة، Kitchenly ${new Date().getFullYear()}</p></div></footer>`;

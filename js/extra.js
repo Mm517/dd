@@ -90,7 +90,7 @@ async function profileShell(active, title, sub) {
   const u = A.session.user, nm = u.user_metadata?.name || '';
   $('#app').innerHTML = `<div class="wrap page"><div class="pshell">
     <aside class="pnav card"><div class="pnav__me"><span class="rv__av lg" aria-hidden="true">${esc((nm || u.email).trim().charAt(0).toUpperCase())}</span><div><b>${esc(nm || 'عميل Kitchenly')}</b><small dir="ltr">${esc(u.email)}</small></div></div>
-      <nav class="pnav__links" aria-label="حسابي">${PNAV.map(([h, k, t, i]) => `<a href="${h}" ${k === active ? 'aria-current="page"' : ''}>${ic(i)}<span>${t}</span></a>`).join('')}<a href="/admin.html" id="adm" hidden>${ic('grid')}<span>لوحة التحكم</span></a><button type="button" id="out">${ic('logout')}<span>تسجيل الخروج</span></button></nav></aside>
+      <nav class="pnav__links" aria-label="حسابي">${PNAV.map(([h, k, t, i]) => `<a href="${h}" ${k === active ? 'aria-current="page"' : ''}>${ic(i)}<span>${t}</span></a>`).join('')}<a href="/admin" id="adm" hidden>${ic('grid')}<span>لوحة التحكم</span></a><button type="button" id="out">${ic('logout')}<span>تسجيل الخروج</span></button></nav></aside>
     <section class="pmain"><h1>${title}</h1>${sub ? `<p class="page__sub">${sub}</p>` : ''}<div id="pbody" style="margin-top:20px"><div class="skel" style="height:160px"></div></div></section></div></div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); location.href = '/'; };
   sb.rpc('kt_is_admin').then(({ data }) => { if (data === true) $('#adm').hidden = false; });

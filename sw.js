@@ -1,6 +1,70 @@
 /* Kitchenly service worker: يخلّي الموقع يتثبّت كتطبيق ويفتح بسرعة وبدون اتصال (للصفحات اللي اتفتحت قبل كده). */
-const V = 'kt-v4', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
-const SHELL = ['/offline.html', '/css/main.css', '/js/config.js', '/js/app.js', '/js/store.js', '/js/account.js', '/js/extra.js', '/assets/icons/icon-192.png', '/assets/img/logo-mark.jpg'];
+const V = 'kt-v5', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
+const SHELL = [
+  '/offline.html',
+  '/css/base.css',
+  '/css/components/ui-kit.css',
+  '/css/layout/header.css',
+  '/css/components/tabbar.css',
+  '/css/pages/home.css',
+  '/css/components/product-card.css',
+  '/css/pages/inner-pages.css',
+  '/css/components/tables-dialogs.css',
+  '/css/layout/footer.css',
+  '/css/components/newsletter.css',
+  '/css/components/reviews.css',
+  '/css/pages/profile.css',
+  '/css/pages/help-legal-join.css',
+  '/css/components/media.css',
+  '/css/layout/catnav-more.css',
+  '/css/components/quick-cards.css',
+  '/css/pages/payment-legal-track-auth.css',
+  '/css/components/banner-skeleton.css',
+  '/css/components/product-card-v2.css',
+  '/css/pages/states-about.css',
+  '/css/components/media-box-focus.css',
+  '/css/components/tabbar-glass.css',
+  '/css/components/install-banner.css',
+  '/css/pages/partner-store.css',
+  '/css/components/product-card-motion.css',
+  '/js/core/config.js',
+  '/js/core/utils.js',
+  '/js/core/supabase.js',
+  '/js/ui/icons.js',
+  '/js/ui/toast.js',
+  '/js/features/cart.js',
+  '/js/core/data.js',
+  '/js/features/search.js',
+  '/js/features/discover.js',
+  '/js/ui/cards.js',
+  '/js/ui/states.js',
+  '/js/ui/search-box.js',
+  '/js/ui/header.js',
+  '/js/ui/footer.js',
+  '/js/ui/card-motion.js',
+  '/js/ui/cart-fx.js',
+  '/js/features/install.js',
+  '/js/core/boot.js',
+  '/js/ui/list-parts.js',
+  '/js/pages/home.js',
+  '/js/pages/catalog.js',
+  '/js/pages/product.js',
+  '/js/pages/cart.js',
+  '/js/pages/checkout.js',
+  '/js/pages/track.js',
+  '/js/pages/contact-404.js',
+  '/js/features/ads.js',
+  '/js/pages/partner-store.js',
+  '/js/pages/auth.js',
+  '/js/features/reviews.js',
+  '/js/pages/profile.js',
+  '/js/pages/yours.js',
+  '/js/pages/help.js',
+  '/js/pages/legal.js',
+  '/js/pages/join-about.js',
+  '/assets/icons/icon-192.png',
+  '/assets/img/logo-mark.jpg'
+];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(STATIC).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
@@ -14,7 +78,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   if (url.origin !== location.origin) return;            // Supabase والخطوط والـ CDN: من الشبكة دايمًا
   if (url.pathname === '/sw.js') return;
-  if (/^\/(admin|be-seller|stuff)(\/|$)/.test(url.pathname) || url.pathname === '/css/panel.css' || /^\/js\/(panel|seller|admin-panel|stuff)\.js$/.test(url.pathname)) return;   // اللوحات دايمًا من الشبكة
+  if (/^\/(admin|be-seller|stuff)(\/|$)/.test(url.pathname) || url.pathname === '/css/panel.css' || /^\/js\/(panel|admin|seller|stuff)\//.test(url.pathname)) return;   // اللوحات دايمًا من الشبكة
 
   /* الصفحات: الشبكة أولًا (عشان الأسعار والمخزون)، ولو مفيش نت نعرض آخر نسخة أو صفحة offline */
   if (req.mode === 'navigate') {

@@ -1,0 +1,41 @@
+/* =====================================================================
+ * css/components/product-card-v2.css
+ * الوظيفة: كارت المنتج البسيط (فيه كل المعلومات) وعرض شبكة/قائمة (زي أمازون).
+ * الترتيب: ملف 19 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #product-card: كارت المنتج بسيط وفيه كل المعلومات ===================== */
+/* #product-card #price #rating #add-to-cart */
+.pcard{border-radius:14px;border-color:#e6ebe2}
+.pcard__img{padding:10px}
+.pcard__off{top:8px;inset-inline-start:8px;border-radius:5px;font-size:.74rem;padding:1px 8px}
+.pcard__body{gap:5px;padding:10px 12px 12px}
+.pcard__tag{align-self:flex-start;font-size:.7rem;font-weight:600;padding:1px 8px;border-radius:4px;background:var(--green-soft);color:var(--green-d)}
+.pcard__tag--deal{background:var(--red);color:#fff}
+.pcard__tag--out{background:#eceeea;color:#555}
+.pcard__name{font-size:.92rem;line-height:1.45;min-height:2.9em}
+.pcard__rate{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted)}
+.pcard__rate b{color:#b36b00;font-weight:600}
+.pcard__rate .stars svg{width:13px;height:13px}
+.pcard .price b{display:inline-flex;align-items:baseline;gap:4px;font-size:1.4rem;font-weight:600;color:var(--ink);line-height:1.2}
+.pcard .price b small{font-size:.72rem;font-weight:400;color:var(--muted)}
+.grid--deals .pcard .price b{color:var(--red)}
+.pcard__meta{display:grid;gap:1px;font-size:.76rem;color:var(--muted)}
+.pcard__meta .is-save{color:var(--red);font-weight:500}
+.pcard__meta .is-free{color:var(--green-d);font-weight:500}
+.pcard__meta .is-low{color:#b25b00;font-weight:500}
+.pcard__add{border-radius:999px;margin-top:6px}
+.feed__more{text-align:center;margin-top:16px}
+
+/* ===================== #view-switch: عرض شبكة / قائمة (زي أمازون) ===================== */
+/* #view-switch #grid #list */
+.viewsw{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.viewsw button{width:36px;height:34px;display:grid;place-items:center;border:0;background:#fff;color:var(--muted);cursor:pointer}
+.viewsw button svg{width:18px;height:18px}
+.viewsw button[aria-pressed="true"]{background:var(--green);color:#fff}
+.grid--list{grid-template-columns:1fr!important;gap:12px}
+.grid--list .pcard{flex-direction:row}
+.grid--list .pcard__img{flex:0 0 36%;max-width:210px;aspect-ratio:1;align-self:stretch}
+.grid--list .pcard__body{padding:14px}
+.grid--list .pcard__name{font-size:1rem;min-height:0}
+.grid--list .pcard__add{width:auto;align-self:flex-start;padding-inline:30px}

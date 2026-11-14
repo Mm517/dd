@@ -1,0 +1,45 @@
+/* =====================================================================
+ * css/components/banner-skeleton.css
+ * الوظيفة: تعديلات متأخرة: تفاصيل الكروت، الشريط العلوي والهيدر الأصغر، بانر الرئيسية، سكلتون الصور.
+ * الترتيب: ملف 18 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #product-card-fixes: تفاصيل أخيرة (اتجاه الخصم وشبكة الكروت) ===================== */
+/* #product-card #discount #quick-cards */
+.pcard__off,.qtile__off{direction:ltr;unicode-bidi:isolate}
+.qcard__grid.n1{grid-template-columns:minmax(0,72%);justify-content:center}
+.qcard__grid.n2{align-content:start}
+
+
+/* ===================== #updates: شريط علوي أصغر + بانر سلايدر أصغر + كارت منتج بسيط (أمازون) + سكلتون لكل كارت وصورة + صور الحالات الفاضية + عرض شبكة/قائمة + من نحن (الأقسام التالية بالترتيب) ===================== */
+/* #updates #header #banner #topstrip */
+.topstrip{font-size:.74rem;padding:3px 12px;line-height:1.5}
+.hdr__bar{padding-block:8px}
+.hashtag-bar .wrap{padding-block:3px;font-size:.76rem}
+
+/* ===================== #banner: بانر الرئيسية (أصغر ومتوسّط، وبيتبدّل fade) ===================== */
+/* #banner #slider #home */
+.banner{margin:12px auto 0;max-width:960px}
+.banner__track{display:grid;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);background:#eef1ea}
+.banner__slide{grid-area:1/1;display:block;opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
+.banner__slide.on{opacity:1;visibility:visible}
+.banner__slide img{display:block;width:100%;height:auto;aspect-ratio:8/3;object-fit:cover}
+.banner__dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.banner__dots button{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:#cfd6cc;cursor:pointer;transition:.2s}
+.banner__dots button.on{width:22px;border-radius:5px;background:var(--green)}
+@media(max-width:599px){.banner{margin:0 -16px;max-width:none}.banner__track{border-radius:0;box-shadow:none}}
+
+/* ===================== #image-skeleton: سكلتون الصور يلمع لحد ما الصورة تحمّل ===================== */
+/* #skeleton #imgph #image */
+.imgph{background:linear-gradient(90deg,#eef1ea 25%,#f8faf5 50%,#eef1ea 75%);background-size:200% 100%;animation:sk 1.2s infinite}
+.imgph>img{opacity:0;transition:opacity .35s,transform .25s}
+.imgph.ld{animation:none;background:#fff}
+.qtile__img.imgph.ld{background:#fafbf8}
+.imgph.ld>img{opacity:1}
+.sk{display:block;background:linear-gradient(90deg,#eef1ea 25%,#f8faf5 50%,#eef1ea 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px}
+.pcard--skel{pointer-events:none;animation:none}
+.pcard--skel .pcard__img{padding:0;border-radius:0}
+.pcard--skel .pcard__body{gap:8px}
+.sk--tag{width:34%;height:14px}.sk--l1{width:96%;height:14px}.sk--l2{width:70%;height:14px}.sk--rate{width:55%;height:12px}
+.sk--price{width:42%;height:24px}.sk--meta{width:64%;height:11px}.sk--btn{height:38px;border-radius:999px;margin-top:6px}
+.qcard--skel{pointer-events:none}.qcard--skel .sk--title{width:50%;height:18px}.qcard--skel .qcard__grid{margin:12px 0}.sk--tile{aspect-ratio:1;border-radius:10px}

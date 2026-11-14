@@ -1,4 +1,11 @@
+/* =====================================================================
+ * css/panel.css
+ * الوظيفة: ستايل لوحات البائع (/be-seller) والأدمن (/admin) والفريق (/stuff): صفحة كاملة مستقلة عن الموقع.
+ * الترتيب: ملف 1 من 1 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
 /* Kitchenly panels: لوحة البائع (/be-seller) ولوحة الأدمن (/admin). صفحة كاملة مستقلة عن الموقع. */
+/* #panel #seller #admin #stuff */
 :root{
   --bg:#f4f6f2; --surface:#fff; --ink:#18221c; --muted:#6a776f; --line:#e2e8df; --line2:#eef2ec;
   --brand:#2f7d4a; --brand-d:#246238; --brand-soft:#e8f3ec; --accent:#f2b705;
@@ -19,6 +26,7 @@ h1,h2,h3,h4,p,ul,ol{margin:0} ul,ol{padding:0;list-style:none} img{max-width:100
 .num{font-variant-numeric:tabular-nums}
 
 /* ---------- الهيكل ---------- */
+/* #panel-shell #layout #sidebar */
 .shell{display:grid;grid-template-columns:var(--side-w) 1fr;min-height:100vh}
 .side{background:var(--side);color:var(--side-ink);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding:18px 14px}
 .side__brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:600;letter-spacing:.04em;color:#fff}
@@ -46,6 +54,7 @@ body[data-area="admin"] .top{background:rgba(244,246,242,.9)}
 .scrim{display:none}
 
 /* ---------- مكونات ---------- */
+/* #panel-components #cards #tables #forms #badges */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
 .card--flat{box-shadow:none}
 .card h2,.card h3{font-size:1rem;font-weight:600}
@@ -135,6 +144,7 @@ dialog h2{font-size:1.2rem}
 .lock{text-align:center;padding:60px 20px}.lock .i{width:48px;height:48px;color:var(--brand);margin:0 auto 14px;display:block}
 
 /* ---------- الدخول والتسجيل (صفحة كاملة) ---------- */
+/* #panel-auth #login #signup */
 .auth{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
 .auth__art{background:var(--side);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
 .auth__art::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;inset-block-end:-200px;inset-inline-start:-160px;background:radial-gradient(circle,rgba(242,183,5,.28),transparent 65%)}
@@ -145,6 +155,7 @@ dialog h2{font-size:1.2rem}
 .auth__art li{display:flex;gap:12px;align-items:flex-start}.auth__art li .i{color:var(--accent);margin-top:3px}
 .auth__logo{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.05em}.auth__logo img{width:40px;height:40px;border-radius:10px}
 /* هوية الجنب: أيقونة + كتشنلي + خط مايل */
+/* #panel-auth #brand #side-art */
 .auth__brand{display:flex;align-items:center;gap:16px}
 .auth__brand img{width:56px;height:56px;border-radius:16px;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.18)}
 .auth__word{display:grid;gap:0;line-height:1}
@@ -159,6 +170,7 @@ dialog h2{font-size:1.2rem}
 .link-b{color:var(--brand);font-weight:500;text-decoration:underline;text-underline-offset:3px}
 
 /* ---------- موبايل ---------- */
+/* #panel-mobile #responsive */
 @media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g-main{grid-template-columns:1fr}.g3{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:900px){
   .shell{grid-template-columns:1fr}
@@ -176,6 +188,7 @@ dialog h2{font-size:1.2rem}
 .sicon{width:56px;height:56px;object-fit:contain;flex:none}
 
 /* ---------- صفحة الطلب ---------- */
+/* #admin #order-details */
 .ostep{display:flex;gap:0;margin:4px 0 14px}
 .ostep li{flex:1;text-align:center;font-size:.76rem;color:var(--muted);position:relative;padding-top:26px}
 .ostep li::before{content:"";position:absolute;top:6px;inset-inline:0;height:4px;background:var(--line)}
@@ -190,6 +203,7 @@ dialog h2{font-size:1.2rem}
 @media (max-width:1100px){.od{grid-template-columns:1fr}}
 @media print{.side,.top,.scrim,.no-print,.toast-wrap{display:none!important}.shell{display:block}.content{padding:0}.card{box-shadow:none}}
 /* ---------- كروت المتاجر ---------- */
+/* #admin #stores #store-cards */
 .stores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
 .scard{padding:0;overflow:hidden;display:flex;flex-direction:column}
 .scard__cover{height:120px;background:linear-gradient(135deg,var(--brand-soft),var(--line2)) center/cover;position:relative}

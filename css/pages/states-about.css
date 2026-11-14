@@ -1,0 +1,32 @@
+/* =====================================================================
+ * css/pages/states-about.css
+ * الوظيفة: صور الحالات الفاضية وصفحة "من نحن".
+ * الترتيب: ملف 20 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #empty-state: صور الحالات الفاضية ===================== */
+/* #empty-state #images #no-results */
+.empty__img{display:block;margin:0 auto 12px;width:min(220px,60%);height:auto;object-fit:contain}
+.empty__img--cart,.empty__img--notfound{width:min(280px,72%)}
+.empty__img--imgsearch{width:130px}
+.nores{text-align:center;padding:20px 8px 4px}.nores img{width:150px;margin:0 auto 8px}.nores h2{font-size:1.2rem}.nores p{color:var(--muted)}
+.hero-ic--ok{width:130px;height:130px;border-radius:50%}
+.order__now--bad{background:var(--red-soft);color:var(--red)}
+.order__now--bad .now-ic{width:48px;height:48px}
+.ico-img[src$="bathroom-organizers.webp"],.ico-img[src$="order-confirmed.webp"],.ico-img[src$="order-cancelled.webp"]{mix-blend-mode:multiply;border-radius:10px}
+.sug__img{border-top:1px solid var(--line);background:#fff;cursor:pointer;border-inline:0;border-bottom:0;font:inherit;color:inherit}
+.sug__img small{font-size:.76rem}
+
+/* ===================== #about: من نحن ===================== */
+/* #about #team #page */
+.about{max-width:900px;margin-inline:auto}
+.about__hero{position:relative;margin:0;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.about__hero img{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;object-position:50% 40%}
+.about__hero figcaption{position:absolute;inset-inline:0;bottom:0;padding:48px 20px 18px;color:#fff;background:linear-gradient(transparent,rgba(15,30,20,.82))}
+.about__hero h1{font-size:1.7rem}.about__hero p{opacity:.92}
+.about__lead{font-size:1.05rem;line-height:2;margin:22px 0;color:#2f3b34}
+.about__pts{display:grid;gap:12px}
+@media(min-width:700px){.about__pts{grid-template-columns:repeat(3,1fr)}}
+.about__pt{padding:18px}.about__pt .ico-lg{width:36px;height:36px;color:var(--green-d);margin-bottom:8px}
+.about__pt h2{font-size:1.02rem}.about__pt p{color:var(--muted);font-size:.9rem;margin-top:4px}
+.about__cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}

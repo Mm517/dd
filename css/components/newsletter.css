@@ -1,0 +1,26 @@
+/* =====================================================================
+ * css/components/newsletter.css
+ * الوظيفة: الاشتراك في العروض (آخر الصفحة الرئيسية).
+ * الترتيب: ملف 10 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #newsletter: الاشتراك في العروض ===================== */
+/* #newsletter #subscribe #form */
+.news{position:relative;background:var(--green);color:#fff;border-radius:var(--r);padding:26px 20px;overflow:hidden;min-height:150px;display:grid;align-items:center}
+.news__form{display:grid;gap:14px;transition:opacity .25s,transform .25s}
+@media(min-width:800px){.news__form{grid-template-columns:1fr minmax(320px,440px);align-items:center;gap:28px}}
+.news h2{font-size:1.3rem;font-weight:600}
+.news p{opacity:.9;font-size:.92rem;margin-top:2px}
+.news form{display:flex;gap:8px}
+.news .field{border-color:transparent}
+.news__err{grid-column:1/-1;background:var(--red-soft);color:var(--red);border-radius:10px;padding:8px 12px;font-size:.88rem;margin:0!important;opacity:1!important}
+.news__ok{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center;padding:16px;opacity:0;pointer-events:none;transform:scale(.96);transition:opacity .3s .15s,transform .3s .15s}
+.news__ok b{font-size:1.15rem}.news__ok span{opacity:.9;font-size:.9rem}
+.news .tick{width:64px;height:64px;margin-bottom:4px}
+.news .tick circle{fill:#fff;stroke:none}
+.news .tick path{fill:none;stroke:var(--green);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:0}
+.news.done .news__form{opacity:0;transform:translateY(-8px);pointer-events:none;visibility:hidden;position:absolute}
+.news.done .news__ok{opacity:1;pointer-events:auto;transform:none}
+.news.done .tick path{animation:draw .5s .35s backwards}
+@keyframes draw{from{stroke-dashoffset:40}}
+.news.done{min-height:150px}

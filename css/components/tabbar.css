@@ -1,0 +1,30 @@
+/* =====================================================================
+ * css/components/tabbar.css
+ * الوظيفة: تبويبات الموبايل السفلية وصفحة اختيار القسم (sheet).
+ * الترتيب: ملف 4 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #tabbar: تبويبات الموبايل وsheet الأقسام ===================== */
+/* #tabbar #mobile-nav #sheet */
+body.has-tabbar{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+@media(min-width:900px){body.has-tabbar{padding-bottom:0}}
+.tabbar{position:fixed;inset-inline:0;bottom:0;z-index:50;background:rgba(255,255,255,.97);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border-top:1px solid #e6ebe2;box-shadow:0 -4px 18px rgba(31,42,36,.07);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom)}
+@media(min-width:900px){.tabbar{display:none}}
+.tabbar__item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:8px 2px 6px;font:inherit;font-size:.68rem;font-weight:500;line-height:1.2;color:#6f7b73;background:none;border:0;cursor:pointer;transition:color .2s}
+.tabbar__item .ico-lg,.tabbar__item .ico-img{width:25px;height:25px;transition:transform .2s}
+.tabbar__item svg.ico-lg{stroke-width:1.6}
+.tabbar__item::before{content:"";position:absolute;top:0;left:50%;width:0;height:3px;border-radius:0 0 4px 4px;background:var(--green);transform:translateX(-50%);transition:width .25s}
+.tabbar__item.is-on{color:var(--green-d);font-weight:600}
+.tabbar__item.is-on::before{width:34px}
+.tabbar__item.is-on .ico-lg{transform:translateY(-1px)}
+.tabbar__item:active .ico-lg,.tabbar__item:active .ico-img{transform:scale(.88)}
+.tabbar__item .badge{top:5px;inset-inline-start:calc(50% + 4px);margin:0;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border-radius:999px;background:#e8590c;color:#fff;font-size:.64rem;font-weight:600;line-height:1;box-shadow:0 0 0 2px #fff}
+.tabbar__item .badge[hidden]{display:none}
+.sheet{position:fixed;inset:0;z-index:70}
+.sheet__scrim{position:absolute;inset:0;background:rgba(20,30,25,.5)}
+.sheet__panel{position:absolute;inset-inline:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;padding:16px;max-height:80vh;overflow:auto}
+.sheet__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sheet__head h2{font-size:1.15rem}
+.sheet__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sheet__tile{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:.8rem;padding:10px 4px;border:1px solid var(--line);border-radius:var(--r)}
+.sheet__tile .cat__ic{width:48px;height:48px}

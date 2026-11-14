@@ -1,0 +1,44 @@
+/* =====================================================================
+ * css/components/reviews.css
+ * الوظيفة: تقييمات المنتج: الملخص والتوزيع والنموذج والنجوم.
+ * الترتيب: ملف 11 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #reviews: تقييمات المنتج ===================== */
+/* #reviews #rating #distribution #form */
+.stars--link:hover span{color:var(--green-d)}
+.rv-grid{display:grid;gap:20px;align-items:start}
+@media(min-width:900px){.rv-grid{grid-template-columns:1.4fr 1fr}.rv-grid>div:last-child{position:sticky;top:120px}}
+.rv-sum{display:grid;gap:16px;padding:18px;align-items:center}
+@media(min-width:560px){.rv-sum{grid-template-columns:140px 1fr}}
+.rv-sum__big{display:grid;justify-items:center;gap:2px;text-align:center}
+.rv-sum__big b{font-size:2.4rem;line-height:1;color:var(--green-d)}
+.rv-sum__big small{color:var(--muted)}
+.dist{display:grid;gap:6px}
+.dist__row{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}
+.dist__row svg{color:var(--sun);fill:var(--sun)}
+.dist__row i{flex:1;height:8px;border-radius:4px;background:#eef1ea;overflow:hidden}
+.dist__row b{display:block;height:100%;background:var(--sun)}
+.dist__row em{min-width:22px;font-style:normal;text-align:end}
+.rv-list{display:grid;gap:12px;margin-top:14px}
+.rv{padding:16px;display:grid;gap:6px}
+.rv__top{display:flex;align-items:center;gap:10px}
+.rv__top>div{flex:1;min-width:0}
+.rv__top small{display:block;color:var(--muted);font-size:.78rem}
+.rv__av{width:38px;height:38px;border-radius:50%;background:var(--green-soft);color:var(--green-d);display:grid;place-items:center;font-weight:600;flex:none}
+.rv__av.lg{width:48px;height:48px;font-size:1.2rem}
+.rv__ok{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:var(--green-d);background:var(--green-soft);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.rv h3{font-size:1rem}
+.rv p{color:#3d4a43;line-height:1.8}
+.rv__hint{color:var(--muted);font-size:.82rem}
+.rv-cta{padding:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.rv-cta p{color:var(--muted);font-size:.9rem;margin-top:2px}
+.rv-form{padding:18px}
+.rv-form h3{font-size:1.1rem;margin-bottom:12px}
+.rform{display:grid;gap:14px}
+.rform__act{display:flex;gap:8px;flex-wrap:wrap}
+.rate{display:flex;gap:4px;direction:ltr;justify-content:flex-end}
+.rate button{width:40px;height:40px;color:#d6dbd3;border-radius:8px;transition:transform .1s,color .1s}
+.rate button svg{width:100%;height:100%}
+.rate button.on{color:var(--sun)}
+.rate button:hover{transform:scale(1.1)}

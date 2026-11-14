@@ -1,0 +1,24 @@
+/* =====================================================================
+ * css/layout/footer.css
+ * الوظيفة: الفوتر + قاعدة تقليل الحركة العامة + أدوات صغيرة (sr-only وغيره).
+ * الترتيب: ملف 9 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #footer: الفوتر وتفضيل تقليل الحركة (عام لكل الصفحات) ===================== */
+/* #footer #links #reduced-motion */
+.ftr{margin-top:56px;background:#1f2a24;color:#cfd8d2;padding-block:28px}
+.ftr__row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.ftr a:hover{color:#fff}
+.ftr__links{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9rem}
+.ftr__copy{margin-top:16px;font-size:.8rem;opacity:.7}
+.ftr .logo{display:flex;align-items:center;gap:8px;color:#fff;font-weight:600;letter-spacing:.04em}
+.ftr .logo img{height:32px;border-radius:6px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+/* ===================== #utilities: أدوات عامة صغيرة ===================== */
+/* #utilities #sr-only #chips */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.newtag{color:var(--muted);font-size:.78rem}
+.chips-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.order__date{color:var(--muted);font-size:.82rem;margin-top:-6px}
+.ftr__legal{margin-top:12px;font-size:.84rem;opacity:.85}

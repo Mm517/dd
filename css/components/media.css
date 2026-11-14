@@ -1,0 +1,43 @@
+/* =====================================================================
+ * css/components/media.css
+ * الوظيفة: أيقونات الصور (3D) للأقسام وحالات الطلب + تبديل صور المنتج (thumbs).
+ * الترتيب: ملف 14 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #category-icons: أيقونات صور (3D) للأقسام والعروض وحالات الطلب ===================== */
+/* #category-icons #images #order-status */
+.ico-img{object-fit:contain;display:block;flex:none}
+.cat__ic:has(.ico-img){background:#f7f2e4}
+.cat--offers .cat__ic:has(.ico-img){background:#fdecea}
+.cat__ic .ico-img{width:86%;height:86%}
+.cats .cat__ic{width:48px;height:48px}
+.cats .cat__ic .ico-img{width:90%;height:90%}
+.ico-img[src$="bundles.png"]{border-radius:10px}
+.role>span .ico-img{width:44px;height:44px}
+.hero-ic{width:150px;height:150px;object-fit:contain;display:block;margin:0 auto 8px}
+.join__hero{text-align:center}.join__hero .hero-ic{width:130px}
+.order__now{display:flex;align-items:center;gap:12px;margin-top:14px;padding:8px 14px;background:var(--green-soft);border-radius:12px;color:var(--green-d)}
+.order__now b{font-size:1rem}
+.now-ic{width:60px;height:60px;object-fit:contain}
+.order__now svg.now-ic{width:34px;height:34px;padding:0}
+.steps .step-ic{width:52px;height:52px;object-fit:contain;transition:.2s}
+.steps svg.step-ic{padding:13px;border-radius:50%;background:#eef2ec;color:#9aa598}
+.steps .on svg.step-ic{background:var(--green);color:#fff}
+.steps li:not(.on) img.step-ic{filter:grayscale(1);opacity:.35}
+.steps .cur img.step-ic{transform:scale(1.14)}
+.steps .cur{font-weight:600}
+
+/* ===================== #product-gallery: تبديل صور المنتج ===================== */
+/* #product-gallery #thumbs #pgal */
+.pcard__img img{transition:opacity .2s,transform .25s}
+.pcard__img.is-multi:hover img{transform:scale(1.03)}
+.pcard__dots{position:absolute;bottom:8px;inset-inline:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.pcard__dots i{width:6px;height:6px;border-radius:50%;background:#cfd6cc;transition:.2s}
+.pcard__dots i.on{background:var(--green);width:16px;border-radius:4px}
+.pgal{display:grid;gap:10px;align-content:start}
+.pgal .pimg img{width:100%;height:100%}
+.pthumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.pthumbs[hidden]{display:none}
+.pthumb{flex:none;width:68px;height:68px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px;cursor:pointer;transition:.15s}
+.pthumb img{width:100%;height:100%;object-fit:contain}
+.pthumb.on,.pthumb:hover{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}

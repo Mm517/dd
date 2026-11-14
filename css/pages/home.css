@@ -1,0 +1,39 @@
+/* =====================================================================
+ * css/pages/home.css
+ * الوظيفة: الصفحة الرئيسية: عناوين الأقسام، الأقسام، المزايا، شريط الشحن.
+ * الترتيب: ملف 5 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #home: الصفحة الرئيسية ===================== */
+/* #home #sections #categories #perks #shipping-strip */
+.sec{margin-top:40px}
+.sec__head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:16px}
+.sec__head h2{font-size:1.4rem;font-weight:600}
+.sec__head p{color:var(--muted);font-size:.9rem}
+.sec__all{color:var(--green-d);font-size:.9rem;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.sec__all:hover{text-decoration:underline}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(min-width:560px){.cats{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:900px){.cats{grid-template-columns:repeat(8,1fr)}}
+.sec--cats{margin-top:20px}
+.sec--cats .sec__head{margin-bottom:10px}
+.sec--cats .sec__head h2{font-size:1.05rem}
+.cats .cat{padding:10px 4px;gap:6px;font-size:.78rem;line-height:1.3}
+.cats .cat__ic{width:40px;height:40px}
+.cats .cat__ic svg{width:22px;height:22px}
+.cat{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 8px;background:#fff;border:1px solid var(--line);border-radius:var(--r);text-align:center;font-weight:500;font-size:.92rem;transition:.15s}
+.cat:hover{border-color:var(--green);box-shadow:var(--shadow);transform:translateY(-2px)}
+.cat__ic{width:64px;height:64px;border-radius:50%;background:var(--green-soft);color:var(--green-d);display:grid;place-items:center}
+.cat__ic svg{width:34px;height:34px}
+.cat--offers .cat__ic{background:#fdf3d4;color:#9a6b00}
+.cat small{color:var(--muted);font-weight:400;font-size:.76rem}
+.perks{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:24px}
+@media(min-width:900px){.perks{grid-template-columns:repeat(4,1fr)}}
+.perk{display:flex;gap:10px;align-items:center;padding:12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);font-size:.85rem}
+.perk svg{color:var(--green);width:26px;height:26px;flex:none}
+.perk b{display:block;font-weight:500}
+.perk small{color:var(--muted)}
+.ship{display:flex;gap:12px;align-items:center;padding:14px 16px;background:var(--green-soft);border-radius:var(--r);color:var(--green-d)}
+.ship__bar{height:6px;background:#cfe3d5;border-radius:3px;margin-top:6px;overflow:hidden}
+.ship__bar i{display:block;height:100%;background:var(--green);transition:width .3s}
+.ship__body{flex:1}

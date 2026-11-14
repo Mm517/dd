@@ -1,0 +1,190 @@
+/* =====================================================================
+ * css/components/product-card-motion.css
+ * الوظيفة: كروت المنتجات: 8 أشكال (variants) + حركة خفيفة (transform/opacity) + هوفر + ظهور تدريجي + زر الإضافة + الصورة الطايرة.
+ * الترتيب: ملف 25 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* =====================================================================
+   كروت المنتجات: 8 أشكال (Variants) + حركة خفيفة
+   - كل شكل = class واحد .pcard--v1 … .pcard--v8 بيضبط متغيرات --pc-*
+   - الحركة بـ transform و opacity فقط، وكلها بتتقفل مع prefers-reduced-motion
+   - لإضافة شكل جديد: انسخ أي بلوك .pcard--vN وغيّر القيم (والعدد VARIANTS في js/ui/card-motion.js)
+   ===================================================================== */
+/* #product-card #variants #animation */
+:root{--pc-ease:cubic-bezier(.22,.8,.3,1);--pc-ease-soft:cubic-bezier(.4,0,.2,1)}
+
+/* القيم الافتراضية (الشكل الأساسي لو مفيش variant) */
+/* #product-card #default-variant */
+.pcard{
+  --pc-bg:#fff; --pc-bd:#e6ebe2; --pc-img-bg:#fff; --pc-img-r:16px; --pc-tilt:0deg; --pc-ar:1; --pc-pad:10px;
+  --pc-off-t:6px; --pc-off-b:auto; --pc-off-l:6px; --pc-off-r:auto;          /* مكان شارة الخصم داخل صندوق الصورة (فوق/تحت، شمال/يمين) */
+  --pc-tag-pos:static; --pc-tag-t:auto; --pc-tag-l:auto; --pc-tag-r:auto;     /* التاج يا يفضل في الجسم (static) يا يطفو فوق الصورة (absolute) */
+  --muted:#56635b;                                                          /* رمادي أغمق شوية لتباين أحسن على الخلفيات الملوّنة */
+  position:relative;overflow:visible;background:var(--pc-bg);border-color:var(--pc-bd);
+  transition:transform .35s var(--pc-ease);
+}
+
+/* ---- الأشكال الثمانية ---- */
+/* #product-card #variants */
+.pcard--v1{--pc-bg:#fff;--pc-bd:#e3e9df;--pc-img-bg:#f3f7f0;--pc-img-r:16px;--pc-tilt:0deg;--pc-ar:1;--pc-pad:10px}
+.pcard--v2{--pc-bg:#e8f3ea;--pc-bd:#d1e5d6;--pc-img-bg:#fff;--pc-img-r:46% 54% 50% 50%/54% 46% 54% 46%;--pc-tilt:-2.5deg;--pc-ar:1/1.1;--pc-pad:12%;
+  --pc-off-l:auto;--pc-off-r:6px}
+.pcard--v3{--pc-bg:#fbf3df;--pc-bd:#eee0bb;--pc-img-bg:#fffaf0;--pc-img-r:50%;--pc-tilt:2deg;--pc-ar:1;--pc-pad:15%;
+  --pc-off-t:auto;--pc-off-b:6px}
+.pcard--v4{--pc-bg:#fdf6d0;--pc-bd:#f0e3a0;--pc-img-bg:#fffef4;--pc-img-r:34px 8px 34px 8px;--pc-tilt:-1.5deg;--pc-ar:1/.9;--pc-pad:10px;
+  --pc-off-t:auto;--pc-off-b:6px;--pc-off-l:auto;--pc-off-r:6px}
+.pcard--v5{--pc-bg:#dcefe2;--pc-bd:#c2dfcb;--pc-img-bg:#fff;--pc-img-r:60% 40% 44% 56%/46% 58% 42% 54%;--pc-tilt:3deg;--pc-ar:1/1.18;--pc-pad:13%;
+  --pc-tag-pos:absolute;--pc-tag-t:18px;--pc-tag-r:18px}
+.pcard--v6{--pc-bg:#eef4df;--pc-bd:#d8e5bb;--pc-img-bg:#fff;--pc-img-r:999px 999px 18px 18px;--pc-tilt:1deg;--pc-ar:1/1.12;--pc-pad:12%;
+  --pc-off-t:auto;--pc-off-b:6px;--pc-off-l:auto;--pc-off-r:6px}
+.pcard--v7{--pc-bg:#fff3e3;--pc-bd:#f2dbbb;--pc-img-bg:#fffaf4;--pc-img-r:6px;--pc-tilt:-3deg;--pc-ar:1/.94;--pc-pad:11px;
+  --pc-off-l:auto;--pc-off-r:6px;--pc-tag-pos:absolute;--pc-tag-t:18px;--pc-tag-l:18px}
+.pcard--v8{--pc-bg:#fffdf5;--pc-bd:#d6e6d1;--pc-img-bg:#eaf4e6;--pc-img-r:38% 62% 60% 40%/42% 40% 60% 58%;--pc-tilt:1.5deg;--pc-ar:1/1.04;--pc-pad:13%;
+  --pc-off-t:auto;--pc-off-b:6px}
+
+/* كروت الإعلانات المموّلة: شارة "مُموّل" في الركن العلوي، فنزيح التاج والخصم بعيد عنه */
+.pcard--ad{--pc-tag-pos:static;--pc-off-t:auto;--pc-off-b:6px;--pc-off-l:6px;--pc-off-r:auto}
+
+/* ---- صندوق الصورة (الشكل + الميل) ---- */
+/* #product-card #image-box #tilt */
+.pcard__media{position:relative;margin:10px 10px 0}
+.pcard .pcard__img{
+  display:block;position:relative;width:100%;padding:0;overflow:hidden;isolation:isolate;
+  aspect-ratio:var(--pc-ar);border-radius:var(--pc-img-r);background:var(--pc-img-bg);
+}
+.pcard .pcard__img.imgph{animation:none;background:var(--pc-img-bg)}
+.pcard .pcard__img>img{
+  position:absolute;inset:var(--pc-pad);width:calc(100% - 2 * var(--pc-pad));height:calc(100% - 2 * var(--pc-pad));
+  object-fit:contain;mix-blend-mode:multiply;
+  transform:rotate(var(--pc-tilt)) scale(1);
+  transition:opacity .35s var(--pc-ease-soft),transform .5s var(--pc-ease);
+}
+.pcard__dots{bottom:6px}
+
+/* ---- الشارات ---- */
+/* #product-card #badges */
+.pcard .pcard__off{
+  z-index:3;overflow:hidden;
+  top:var(--pc-off-t);bottom:var(--pc-off-b);left:var(--pc-off-l);right:var(--pc-off-r);
+}
+.pcard .pcard__off::after{ /* لمعان هادي: بيشتغل مرة واحدة عند ظهور الكارت ومرة عند الـ hover */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.6) 50%,transparent 70%);
+  transform:translateX(-130%);
+}
+.pcard__tag{
+  position:var(--pc-tag-pos);top:var(--pc-tag-t);left:var(--pc-tag-l);right:var(--pc-tag-r);
+  z-index:3;background:rgba(255,255,255,.78);box-shadow:inset 0 0 0 1px rgba(37,99,57,.16);
+}
+.pcard__tag--deal{background:var(--red);color:#fff;box-shadow:none}
+.pcard__tag--out{background:rgba(255,255,255,.85);color:#454d48}
+.pcard__rate b,.pcard__meta .is-low{color:#8f5400}
+
+/* ---- صورة ناقصة أو معطوبة ---- */
+/* #product-card #broken-image */
+.pcard__img.is-noimg>img{display:none}
+.pcard__img.is-noimg::before{
+  content:"";position:absolute;inset:0;background:center/34% no-repeat
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393ad99' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8l9-5 9 5v8l-9 5-9-5z'/%3E%3Cpath d='M3 8l9 5 9-5M12 13v8'/%3E%3C/svg%3E");
+}
+
+/* ---- شبكة: كروت أطول وأقصر على الشاشات الكبيرة، ومتساوية في الصف على الموبايل ---- */
+/* #product-card #grid */
+.grid:has(>.pcard){--pc-align:stretch;align-items:var(--pc-align)}
+@media(min-width:700px){.grid:has(>.pcard){--pc-align:start}}   /* غيّرها لـ stretch لو عايز صفوف متساوية في الديسكتوب */
+.grid--list:has(>.pcard){--pc-align:stretch}
+
+/* عرض القائمة: صورة مربعة ثابتة بجنب النص */
+/* #product-card #list-view */
+.grid--list .pcard{--pc-ar:1}
+.grid--list .pcard__media{flex:0 0 36%;max-width:210px;margin:10px;align-self:flex-start}
+.grid--list .pcard .pcard__img{flex:none;max-width:none;align-self:auto}
+.grid--list .pcard--ad .pcard__sp{inset-inline-end:8px}
+
+/* ---- هوفر / ضغط على الموبايل: رفع + ظل ناعم (الظل بـ opacity مش بـ box-shadow) ---- */
+/* #product-card #hover #touch */
+.pcard::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  box-shadow:0 16px 30px -12px rgba(31,42,36,.24),0 4px 12px rgba(31,42,36,.07);
+  transition:opacity .35s var(--pc-ease);
+}
+.pcard:active{transform:translateY(-2px)}
+.pcard:active::before{opacity:1}
+.pcard:has(:focus-visible){transform:translateY(-3px)}
+.pcard:has(:focus-visible)::before{opacity:1}
+@media(hover:hover){
+  .pcard:hover{transform:translateY(-4px)}
+  .pcard:hover::before{opacity:1}
+  .pcard:hover .pcard__img>img{transform:rotate(var(--pc-tilt)) scale(1.07)}
+  .pcard:hover .pcard__off::after{transform:translateX(130%);transition:transform .75s var(--pc-ease-soft)}
+}
+.pcard:active .pcard__img>img{transform:rotate(var(--pc-tilt)) scale(1.05)}
+.pcard--skel,.pcard--skel:hover,.pcard--skel:active{transform:none}
+.pcard--skel::before{display:none}
+
+/* ---- ظهور تدريجي مع السكرول (JS بيضيف الكلاسات دي) ---- */
+/* #product-card #reveal #scroll */
+.pcard.rv-pre{opacity:0}
+.pcard.rv-in{animation:pc-in .55s var(--pc-ease) var(--pc-d,0ms) backwards}
+@keyframes pc-in{from{opacity:0;transform:translateY(18px)}}
+.pcard.is-seen .pcard__off::after{animation:pc-shine 1.1s var(--pc-ease-soft) calc(var(--pc-d,0ms) + .55s) 1 both}
+@keyframes pc-shine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}
+
+/* ---- زر أضف للسلة: نبضة + حلقة ---- */
+/* #add-to-cart #pulse #animation */
+.pcard__add{position:relative;transition:transform .2s var(--pc-ease),background-color .15s}
+.pcard__add:active:not(:disabled){transform:scale(.97)}
+.pcard__add::after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid var(--green);opacity:0;pointer-events:none}
+.pcard__add.is-pulse{animation:pc-pulse .5s var(--pc-ease)}
+.pcard__add.is-pulse::after{animation:pc-ring .6s var(--pc-ease-soft)}
+@keyframes pc-pulse{0%{transform:scale(1)}35%{transform:scale(.94)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes pc-ring{from{opacity:.55;transform:scale(1)}to{opacity:0;transform:scale(1.18,1.5)}}
+
+/* ---- أيقونة السلة في الهيدر / الشريط السفلي: bounce ---- */
+/* #cart #bump #header #tabbar */
+.cart-bump .ico,.cart-bump .ico-lg{animation:pc-bump .6s var(--pc-ease)}
+.cart-bump .badge{animation:pc-pop .5s var(--pc-ease)}
+@keyframes pc-bump{0%,100%{transform:translateY(0)}30%{transform:translateY(-7px) scale(1.12)}55%{transform:translateY(0)}75%{transform:translateY(-3px)}}
+@keyframes pc-pop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+
+/* ---- سكلتون: لمعان بـ transform بدل background-position (بيقف أول ما المنتجات تتحمّل) ---- */
+/* #skeleton #shimmer #animation */
+.pcard--skel .sk,.pcard .pcard__img.imgph:not(.ld){position:relative;overflow:hidden;animation:none}
+.pcard--skel .sk{background:#eaeee5}
+.pcard--skel .pcard__img{border-radius:16px}
+.pcard--skel .pcard__media{margin:10px 10px 0}
+.pcard--skel .pcard__media .pcard__img{width:100%}
+.pcard--skel .sk::after,.pcard .pcard__img.imgph:not(.ld)::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 25%,rgba(255,255,255,.75) 50%,transparent 75%);
+  transform:translateX(-100%);animation:pc-sweep 1.3s linear infinite;
+}
+.pcard .pcard__img.imgph:not(.ld)::after{z-index:1}
+@keyframes pc-sweep{to{transform:translateX(100%)}}
+
+/* ---- إيقاف الحركة: تفضيل النظام أو html.no-motion (JS بيضيفها لو CARD_MOTION=false) ---- */
+/* #reduced-motion #accessibility #no-motion */
+@media(prefers-reduced-motion:reduce){
+  .pcard,.pcard *,.pcard::before,.pcard *::after,.cart-bump *{animation:none!important;transition:none!important}
+  .pcard.rv-pre{opacity:1!important}
+  .pcard:hover,.pcard:active{transform:none}
+}
+html.no-motion .pcard,html.no-motion .pcard *,html.no-motion .pcard::before,html.no-motion .pcard *::after,html.no-motion .cart-bump *{animation:none!important;transition:none!important}
+html.no-motion .pcard.rv-pre{opacity:1!important}
+html.no-motion .pcard:hover,html.no-motion .pcard:active{transform:none}
+
+/* ---- زر أضف للسلة: هوفر (لمعة + رفع) وحالة "تمت الإضافة" + الصورة الطايرة ---- */
+/* #add-to-cart #hover #fly-to-cart */
+.pcard__add{overflow:hidden}
+.pcard__add::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);opacity:0}
+@media(hover:hover){
+  .pcard__add:hover:not(:disabled){transform:translateY(-2px) scale(1.02)}
+  .pcard__add:hover:not(:disabled)::before{opacity:1;transform:translateX(120%);transition:transform .65s var(--pc-ease-soft)}
+}
+.pcard__add.is-done{background:var(--green-d)}
+.pcard__add.is-pulse{overflow:visible}
+.fly-ghost{position:fixed;z-index:200;pointer-events:none;border-radius:50%;background:#fff;box-shadow:0 6px 18px rgba(31,42,36,.28);display:grid;place-items:center;overflow:hidden;will-change:transform,opacity}
+.fly-ghost img{width:82%;height:82%;object-fit:contain}
+html.no-motion .fly-ghost,html.no-motion .pcard__add::before{display:none}
+@media(prefers-reduced-motion:reduce){.fly-ghost,.pcard__add::before{display:none}}

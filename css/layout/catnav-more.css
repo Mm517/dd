@@ -1,0 +1,22 @@
+/* =====================================================================
+ * css/layout/catnav-more.css
+ * الوظيفة: شريط الأقسام بدون سكرول وزر "المزيد" ولوحة الأقسام.
+ * الترتيب: ملف 15 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #catnav: شريط الأقسام بدون سكرول + زر "المزيد" ===================== */
+/* #catnav #more #categories #header */
+.catnav{position:relative}
+.catnav a[hidden]{display:none}
+.catnav__more{margin-inline-start:auto;flex:none;display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:8px;font-size:.9rem;font-weight:500;color:var(--green-d);background:var(--green-soft);white-space:nowrap}
+.catnav__more:hover{background:#dcece1}
+.catnav__more .ico-sm{transition:transform .2s}
+.catnav__more[aria-expanded="true"] .ico-sm{transform:rotate(180deg)}
+.catpanel{position:absolute;inset-inline:0;top:100%;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 18px 30px rgba(31,42,36,.14);z-index:45;padding-block:16px 20px}
+.catpanel[hidden]{display:none}
+.catpanel__t{font-weight:600;margin-bottom:10px}
+.catpanel__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.catnav .catpanel__tile{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font-size:.92rem;color:var(--ink);white-space:normal}
+.catnav .catpanel__tile:hover{border-color:var(--green);background:var(--green-soft);color:var(--green-d)}
+.catnav .catpanel__tile.on-offer{color:#9a6b00}
+.catpanel__tile .cat__ic{width:42px;height:42px;flex:none}

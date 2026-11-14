@@ -1,0 +1,22 @@
+/* =====================================================================
+ * css/components/tabbar-glass.css
+ * الوظيفة: شريط الموبايل السفلي: كبسولة عايمة بتأثير الزجاج (زي iOS).
+ * الترتيب: ملف 22 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #tabbar-glass: كبسولة عايمة بتأثير الزجاج (زي iOS) ===================== */
+/* #tabbar #glass #ios #mobile-nav */
+body.has-tabbar{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+@media(min-width:900px){body.has-tabbar{padding-bottom:0}}
+.tabbar{inset-inline:auto;left:50%;right:auto;bottom:calc(12px + env(safe-area-inset-bottom));width:min(calc(100% - 28px),440px);transform:translateX(-50%);padding:6px;gap:2px;border-radius:30px;border:1px solid rgba(255,255,255,.75);
+  background:linear-gradient(180deg,rgba(255,255,255,.74),rgba(255,255,255,.58));
+  -webkit-backdrop-filter:blur(26px) saturate(1.9);backdrop-filter:blur(26px) saturate(1.9);
+  box-shadow:0 10px 30px rgba(20,40,28,.18),0 2px 6px rgba(20,40,28,.08),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(255,255,255,.35)}
+@media(min-width:900px){.tabbar{display:none}}
+.tabbar__item{min-height:54px;padding:7px 2px 5px;border-radius:24px;gap:2px;font-size:.66rem;color:#4d5a52;transition:color .2s,background .25s,box-shadow .25s}
+.tabbar__item::before{display:none}
+.tabbar__item.is-on{color:var(--green-d);background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.5));box-shadow:0 2px 8px rgba(20,40,28,.12),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(47,125,74,.12)}
+.tabbar__item.is-on .ico-lg{transform:none}
+.tabbar__item:active{background:rgba(255,255,255,.55)}
+.tabbar__item .badge{top:3px;box-shadow:0 0 0 2px rgba(255,255,255,.9)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.tabbar{background:rgba(255,255,255,.96)}}

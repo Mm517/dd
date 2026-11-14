@@ -1,0 +1,115 @@
+/* =====================================================================
+ * css/pages/inner-pages.css
+ * الوظيفة: الصفحات الداخلية: القوائم، صفحة المنتج، السلة والدفع، تتبع الطلب، الدخول، السياسات، صندوق البحث الذكي.
+ * الترتيب: ملف 7 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #inner-pages: الصفحات الداخلية (عناوين وشريط أدوات وفتات الخبز) ===================== */
+/* #inner-pages #page #toolbar #breadcrumbs */
+.page{padding-block:28px 40px}
+.page h1{font-size:1.8rem;font-weight:600}
+.page__sub{color:var(--muted);margin-top:4px}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}
+.toolbar .sort{margin-inline-start:auto;display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}
+.toolbar .sort select{width:auto;padding:6px 10px}
+.count{margin-top:16px;color:var(--muted);font-size:.9rem}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;font-size:.85rem;color:var(--muted);margin-bottom:20px}
+.crumbs a:hover{color:var(--green-d)}
+
+/* ===================== #product-page: صفحة المنتج (الصورة والمعلومات والكمية والضمانات) ===================== */
+/* #product #gallery #qty #add-to-cart #stock */
+.pgrid{display:grid;gap:28px}
+@media(min-width:900px){.pgrid{grid-template-columns:1fr 1fr}}
+.pimg{position:relative;aspect-ratio:1;background:#fff;border:1px solid var(--line);border-radius:var(--r);display:grid;place-items:center;padding:24px}
+.pimg img{max-height:100%;object-fit:contain}
+.pimg .pcard__off{font-size:.85rem;padding:4px 10px}
+.pinfo h1{font-size:1.7rem;line-height:1.35}
+.pinfo .price b{font-size:1.7rem}
+.pinfo__desc{margin-top:16px;line-height:1.9;color:#3d4a43}
+.ticks{margin-top:14px;display:grid;gap:8px}
+.ticks li{display:flex;gap:10px;align-items:center}
+.ticks svg{background:var(--green);color:#fff;border-radius:50%;padding:3px;width:20px;height:20px;flex:none}
+.buyrow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fff}
+.qty button{padding:10px 12px}
+.qty output,.qty span{min-width:28px;text-align:center;font-weight:500}
+.assure{display:grid;gap:8px;margin-top:24px}
+@media(min-width:600px){.assure{grid-template-columns:repeat(3,1fr)}}
+.assure div{display:flex;gap:8px;align-items:center;background:var(--green-soft);color:var(--green-d);border-radius:10px;padding:10px 12px;font-size:.85rem}
+.stock-ok{color:var(--green-d)}.stock-low{color:#9a6b00}.stock-out{color:var(--red)}
+
+/* ===================== #cart-checkout: تخطيط السلة والدفع وملخص الطلب ===================== */
+/* #cart #checkout #order-summary #layout */
+.cols{display:grid;gap:20px;align-items:start}
+@media(min-width:900px){.cols{grid-template-columns:1fr 340px}}
+.aside{padding:20px}
+@media(min-width:900px){.aside{position:sticky;top:110px}}
+.aside h2{font-size:1.2rem;margin-bottom:12px}
+.rows{display:grid;gap:10px;font-size:.92rem}
+.rows div{display:flex;justify-content:space-between;gap:12px}
+.rows .tot{border-top:1px solid var(--line);padding-top:10px;font-weight:600;font-size:1.05rem;color:var(--green-d)}
+.rows dt{color:var(--muted)}.rows .tot dt{color:inherit}
+.line{display:flex;gap:14px;padding:12px}
+.line img{width:88px;height:88px;object-fit:contain;background:#fff;border-radius:10px;flex:none}
+.line__b{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.line__row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+.icon-btn{padding:8px;border-radius:8px;color:var(--muted)}
+.icon-btn:hover{color:var(--red);background:var(--red-soft)}
+.mini li{display:flex;align-items:center;gap:10px;font-size:.88rem}
+.mini img{width:44px;height:44px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.mini span.n{flex:1}
+
+/* ===================== #payment-methods: اختيار طريقة الدفع ===================== */
+/* #checkout #payment-methods #pay */
+.pay{display:grid;gap:10px}
+.pay label{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#fff}
+.pay label:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.pay input{accent-color:var(--green);width:18px;height:18px}
+.pay b{display:block}.pay small{color:var(--muted)}
+
+/* ===================== #order-steps: خطوات الطلب والحالة وكارت الطلب ===================== */
+/* #track #order #status #steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:.75rem;color:var(--muted);margin-top:16px}
+.steps li{display:flex;flex-direction:column;align-items:center;gap:6px}
+.steps i{width:12px;height:12px;border-radius:50%;background:#d6dbd3}
+.steps .on{color:var(--green-d)}.steps .on i{background:var(--green)}
+.status{border-radius:999px;padding:2px 12px;font-size:.82rem;background:var(--green-soft);color:var(--green-d)}
+.status.bad{background:var(--red-soft);color:var(--red)}
+.order{padding:18px;display:grid;gap:12px}
+.order__head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.order__head h3{font-size:1.1rem}
+
+/* ===================== #auth-card: كارت مركزي (الدخول/الكود/التبويبات) ===================== */
+/* #auth #login #tabs #otp */
+.center{max-width:480px;margin-inline:auto;padding:28px}
+.center.wide{max-width:560px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:20px}
+.tabs button{padding:8px;border-radius:8px;font-size:.9rem}
+.tabs button[aria-current="true"]{background:#fff;box-shadow:var(--shadow);color:var(--green-d);font-weight:500}
+.code-in{letter-spacing:.5em;text-align:center;font-size:1.5rem;direction:ltr}
+.link-btn{color:var(--green-d);text-decoration:underline;font-size:.88rem}
+.okmark{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;margin:0 auto 16px}
+
+/* ===================== #paybox: صندوق الدفع ===================== */
+/* #paybox #payment */
+.paybox{margin-top:20px;padding:16px;border-radius:10px;background:var(--green-soft);text-align:start;font-size:.92rem}
+
+/* ===================== #legal: صفحات السياسات ===================== */
+/* #legal #policy */
+.legal{display:grid;gap:28px;max-width:760px}
+.legal section{border-top:1px solid var(--line);padding-top:20px;scroll-margin-top:110px}
+.legal h2{font-size:1.3rem;margin-bottom:8px}
+.legal p{color:#3d4a43;line-height:1.9;margin-bottom:8px}
+.legal a{color:var(--green-d);text-decoration:underline}
+
+/* ===================== #ai-box: صندوق البحث الذكي ===================== */
+/* #ai-box #ai-search #search */
+.ai-box{margin-top:20px;padding:16px;border-radius:var(--r);background:#fff;border:1px dashed var(--green);display:flex;gap:12px;align-items:flex-start}
+.ai-box svg{color:var(--green);flex:none;width:26px;height:26px}
+.ai-box h3{font-size:1rem;margin-bottom:2px}
+.ai-box p{color:var(--muted);font-size:.92rem}
+.ai-thumb{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+
+/* ===================== #subhead: عنوان فرعي ===================== */
+/* #subhead #typography */
+.subhead{font-size:1.15rem;font-weight:600;margin:28px 0 12px}

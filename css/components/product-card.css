@@ -1,0 +1,31 @@
+/* =====================================================================
+ * css/components/product-card.css
+ * الوظيفة: شبكة المنتجات وكارت المنتج الأساسي والسعر والنجوم والشريط الأفقي.
+ * الترتيب: ملف 6 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #product-card: شبكة المنتجات والبطاقة ===================== */
+/* #product-card #grid #price #stars #rail */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr);gap:16px}}
+@media(min-width:1000px){.grid{grid-template-columns:repeat(4,1fr)}}
+.pcard{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s}
+.pcard:hover{box-shadow:var(--shadow)}
+.pcard__img{position:relative;display:block;aspect-ratio:1;background:#fff;padding:14px}
+.pcard__img img{width:100%;height:100%;object-fit:contain}
+.pcard__off{position:absolute;top:10px;inset-inline-start:10px;background:var(--red);color:#fff;font-size:.75rem;font-weight:600;border-radius:6px;padding:2px 8px}
+.pcard__badge{position:absolute;top:10px;inset-inline-end:10px;background:var(--green);color:#fff;font-size:.72rem;border-radius:6px;padding:2px 8px}
+.pcard__body{display:flex;flex-direction:column;gap:6px;padding:12px;flex:1}
+.pcard__name{font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.8em}
+.pcard__name:hover{color:var(--green-d)}
+.stars{display:flex;align-items:center;gap:2px;font-size:.78rem;color:var(--muted)}
+.stars svg{width:14px;height:14px;color:#d6dbd3}
+.stars svg.on{color:var(--sun)}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-top:auto}
+.price b{font-size:1.1rem;color:var(--green-d)}
+.price s{color:var(--muted);font-size:.85rem}
+.pcard__save{font-size:.78rem;color:var(--green-d)}
+.pcard__low{font-size:.78rem;color:#9a6b00}
+.rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;scrollbar-width:thin}
+.rail .pcard{flex:0 0 200px;scroll-snap-align:start}
+@media(min-width:700px){.rail .pcard{flex-basis:230px}}

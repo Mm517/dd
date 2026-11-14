@@ -1,0 +1,42 @@
+/* =====================================================================
+ * css/pages/payment-legal-track-auth.css
+ * الوظيفة: لوجوهات الدفع + صور بنود السياسات + صفحة تتبع الطلب + خلفية صفحة الدخول.
+ * الترتيب: ملف 17 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #payment-logos: وسائل الدفع ===================== */
+/* #payment-logos #payments */
+.paylogos{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.paylogos img{height:26px;width:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 9px;object-fit:contain}
+.paylogos.on-dark img{border-color:transparent}
+.pay label .pay__logos{margin-inline-start:auto}
+.pay label .pay__logos img{height:22px;padding:3px 7px}
+.paybox .paylogos{display:flex;margin-top:8px}
+.ftr__pay{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:18px;font-size:.84rem;opacity:.95}
+
+/* ===================== #legal: صفحة السياسات (صورة لكل بند) ===================== */
+/* #legal #policy #images */
+.legal{max-width:920px}
+.legal__row{display:grid;gap:16px;align-items:center}
+@media(min-width:720px){.legal__row.has-media{grid-template-columns:1fr 210px;gap:28px}}
+.legal__media{display:grid;place-items:center;background:var(--green-soft);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;width:100%;max-width:230px;justify-self:center}
+.legal__media img{display:block;width:100%;height:auto}
+.legal__media--pay{padding:18px;gap:12px;background:#fff;align-content:center}
+.legal__media--pay .paylogos{justify-content:center}
+.legal__media--pay .paylogos img{height:30px}
+
+/* ===================== #track: تتبع الطلب ===================== */
+/* #track #order-tracking */
+.trk__hero{display:flex;gap:16px;align-items:center;margin-bottom:6px}
+.trk__hero img{width:96px;height:96px;border-radius:20px;object-fit:cover;flex:none;box-shadow:var(--shadow)}
+.trk__empty{display:grid;place-items:center;padding:8px}
+.trk__empty img{width:min(240px,70%);border-radius:var(--r)}
+
+/* ===================== #auth: تسجيل الدخول بخلفية صورة مموّهة (blur) ===================== */
+/* #auth #login #backdrop-blur */
+html{background:var(--bg)}
+body[data-page="auth"]{background:transparent;isolation:isolate}
+body[data-page="auth"]::before{content:"";position:fixed;inset:-40px;z-index:-1;background:linear-gradient(rgba(247,248,244,.35),rgba(247,248,244,.35)),url(/assets/img/pages/login-bg.webp) center/cover no-repeat;filter:blur(16px) saturate(1.1)}
+body[data-page="auth"] .center{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border-color:rgba(255,255,255,.65);box-shadow:0 14px 44px rgba(31,42,36,.2)}
+body[data-page="auth"] .tabs{background:rgba(255,255,255,.55)}
+@supports not (backdrop-filter:blur(1px)){body[data-page="auth"] .center{background:rgba(255,255,255,.94)}}

@@ -1,0 +1,30 @@
+/* =====================================================================
+ * css/base.css
+ * الوظيفة: الأساس: متغيرات الألوان والقياسات (:root) و reset والعناصر العامة (wrap, ico).
+ * الترتيب: ملف 1 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #base: المتغيرات والـ reset والعناصر العامة ===================== */
+/* #base #variables #reset #root */
+:root{
+  --bg:#f7f8f4; --surface:#fff; --ink:#1f2a24; --muted:#66736b; --line:#e3e8df;
+  --green:#2f7d4a; --green-d:#256339; --green-soft:#e9f3ec; --sun:#f2b705; --red:#b3372b; --red-soft:#fbeceb;
+  --r:12px; --shadow:0 1px 2px rgba(31,42,36,.06),0 4px 14px rgba(31,42,36,.06);
+  --wrap:1200px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Readex Pro",system-ui,"Segoe UI",Tahoma,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+h1,h2,h3,p,ul,ol,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:16px}
+.no-scroll{overflow:hidden}
+.ico{width:20px;height:20px;flex:none}
+.ico-lg{width:28px;height:28px}
+.ico-sm{width:16px;height:16px}

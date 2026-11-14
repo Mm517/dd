@@ -1,0 +1,45 @@
+/* =====================================================================
+ * css/layout/header.css
+ * الوظيفة: الهيدر: الشريط العلوي، البحث والاقتراحات، شريط الأقسام، هاشتاج الصفحة.
+ * الترتيب: ملف 3 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #header: الهيدر والبحث وشريط الأقسام ===================== */
+/* #header #search-box #suggestions #catnav #hashtag */
+.topstrip{background:var(--green);color:#fff;font-size:.82rem;text-align:center;padding:6px 12px}
+.hdr{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.hdr__bar{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.hdr__logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.2rem;letter-spacing:.04em;color:var(--green-d)}
+.hdr__logo img{height:40px;width:auto;border-radius:8px}
+.hdr__search{position:relative;flex:1 1 100%;order:3;min-width:0}
+@media(min-width:900px){.hdr__search{flex:1;order:0;max-width:640px;margin-inline:auto}}
+.sbox{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
+.sbox:focus-within{border-color:var(--green);background:#fff}
+.sbox input{flex:1;min-width:0;border:0;background:transparent;padding:10px 14px;outline:none}
+.sbox button{padding:0 12px;height:42px;color:var(--muted);display:grid;place-items:center}
+.sbox button:hover{color:var(--green)}
+.sbox .sbox__go{background:var(--green);color:#fff}
+.sbox .sbox__go:hover{background:var(--green-d);color:#fff}
+.sug{position:absolute;inset-inline:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);z-index:60;max-height:70vh;overflow:auto}
+.sug a,.sug button.sug__row{display:flex;align-items:center;gap:12px;padding:8px 12px;width:100%;text-align:start}
+.sug a:hover,.sug button.sug__row:hover,.sug .is-on{background:var(--green-soft)}
+.sug img{width:44px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}
+.sug small{display:block;color:var(--muted)}
+.sug__ai{border-top:1px solid var(--line);color:var(--green-d);font-weight:500}
+.hdr__act{display:flex;align-items:center;gap:4px;margin-inline-start:auto}
+@media(min-width:900px){.hdr__act{margin-inline-start:0}}
+.hdr__link{position:relative;display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;font-size:.9rem}
+.hdr__link:hover{background:var(--green-soft)}
+.hdr__link span{display:none}
+@media(min-width:900px){.hdr__link span{display:inline}}
+.badge{position:absolute;top:0;inset-inline-start:0;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:.7rem;display:grid;place-items:center;padding:0 4px;font-weight:600}
+.catnav{border-top:1px solid var(--line);display:none}
+@media(min-width:900px){.catnav{display:block}}
+.catnav__in{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;padding-block:4px;overflow:hidden}
+.catnav a{white-space:nowrap;padding:6px 12px;border-radius:8px;font-size:.9rem;color:var(--muted)}
+.catnav a:hover,.catnav a[aria-current="true"]{background:var(--green-soft);color:var(--green-d)}
+.catnav a.deal{color:var(--red);font-weight:500}
+.catnav a.mine{color:#9a6b00;font-weight:500}
+.hashtag-bar{background:#fff;border-bottom:1px solid var(--line)}
+.hashtag-bar .wrap{display:flex;align-items:center;gap:8px;padding-block:6px;font-size:.82rem;color:var(--muted)}
+.hashtag{color:var(--green-d);font-weight:500}

@@ -1,0 +1,22 @@
+/* =====================================================================
+ * css/components/media-box-focus.css
+ * الوظيفة: صندوق صورة مربع ثابت في الكروت + إزالة مربع اللمس على الموبايل مع إبقاء focus الكيبورد.
+ * الترتيب: ملف 21 من 25 في الـ <link>. الترتيب جزء من الأولوية (cascade) فلا تغيّره.
+ * ===================================================================== */
+
+/* ===================== #image-box: صندوق صورة مربع ثابت في كل الكروت (الصورة جوّاه بدون ما تكبّر الكارت) ===================== */
+/* #image-box #product-card #aspect-ratio */
+.pcard__img{aspect-ratio:1;min-height:0;overflow:hidden}
+.pcard__img>img{position:absolute;inset:10px;width:calc(100% - 20px);height:calc(100% - 20px);object-fit:contain}
+.pcard--skel .pcard__img{aspect-ratio:1}
+.empty__img,.nores img{mix-blend-mode:multiply}
+
+
+/* ===================== #focus: بدون المربع الأزرق/الأخضر عند اللمس على الموبايل (الـ outline يظهر للكيبورد فقط) ===================== */
+/* #focus #tap-highlight #accessibility */
+html{-webkit-tap-highlight-color:transparent}
+a,button,summary,label,[role="button"],.chip,.cat,.qtile,.pcard{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+.tabbar__item,.tabbar__item:focus,.sheet__tile:focus,.catnav a:focus,.hdr__link:focus{outline:none}
+.tabbar__item:focus-visible{outline:2px solid var(--green);outline-offset:-4px;border-radius:10px}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),summary:focus:not(:focus-visible){outline:none}
+.tabbar,.tabbar *{user-select:none;-webkit-user-select:none}

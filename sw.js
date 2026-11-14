@@ -1,5 +1,5 @@
 /* Kitchenly service worker: يخلّي الموقع يتثبّت كتطبيق ويفتح بسرعة وبدون اتصال (للصفحات اللي اتفتحت قبل كده). */
-const V = 'kt-v3', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
+const V = 'kt-v4', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
 const SHELL = ['/offline.html', '/css/main.css', '/js/config.js', '/js/app.js', '/js/store.js', '/js/account.js', '/js/extra.js', '/assets/icons/icon-192.png', '/assets/img/logo-mark.jpg'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(STATIC).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });

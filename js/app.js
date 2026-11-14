@@ -94,7 +94,12 @@ const Cart = {
   subtotal() { return this.read().reduce((a, x) => a + x.price * x.qty, 0); }
 };
 const shipping = sub => (sub >= K.freeShipFrom || sub === 0 ? 0 : K.shippingFee);
-function badge() { const n = Cart.count(); $$('[data-cart-count]').forEach(el => { el.textContent = n; el.hidden = !n; }); }
+let lastCartN = null;   /* لتحديد إن العدد زاد (يعني تمت إضافة منتج) فنعمل bounce للأيقونة */
+function badge() {
+  const n = Cart.count(); $$('[data-cart-count]').forEach(el => { el.textContent = n; el.hidden = !n; });
+  if (lastCartN !== null && n > lastCartN) bumpCart();
+  lastCartN = n;
+}
 
 /* ---------- البيانات ---------- */
 const PC = {};
@@ -227,10 +232,11 @@ function fileToJpeg(file, max = 1024) {
 const discount = p => (p.old_price > p.price ? Math.round((1 - p.price / p.old_price) * 100) : 0);
 function card(p) {
   const d = discount(p), out = p.stock < 1, low = !out && p.stock <= 10, save = d ? Math.round(p.old_price - p.price) : 0;
-  const il = imgList(p), multi = il.length > 1, free = p.price >= K.freeShipFrom;
+  const il = imgList(p).filter(x => x && x !== '/'), has = il.length > 0, multi = il.length > 1, free = p.price >= K.freeShipFrom;
+  const v = variantOf(p);
   const rate = p.reviews_count > 0 ? `<div class="pcard__rate" aria-label="تقييم ${p.rating} من 5"><b>${Number(p.rating).toFixed(1)}</b>${stars(p.rating)}<span>(${fmt(p.reviews_count)})</span></div>` : '<div class="pcard__rate"><span class="newtag">جديد، لا تقييمات بعد</span></div>';
   const tag = out ? '<span class="pcard__tag pcard__tag--out">غير متوفر</span>' : d >= 15 ? `<span class="pcard__tag pcard__tag--deal">عرض محدود</span>` : p.badge ? `<span class="pcard__tag">${esc(p.badge)}</span>` : '';
-  return `<article class="pcard"><a href="${purl(p)}" class="pcard__img imgph${multi ? ' is-multi' : ''}" ${multi ? `data-imgs="${esc(JSON.stringify(il))}"` : ''} tabindex="-1" aria-hidden="true"><img src="${esc(il[0])}" alt="" loading="lazy" decoding="async">${multi ? `<span class="pcard__dots" aria-hidden="true">${il.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}${d ? `<span class="pcard__off">-${d}%</span>` : ''}</a>
+  return `<article class="pcard pcard--v${v}" data-v="${v}"><div class="pcard__media"><a href="${purl(p)}" class="pcard__img imgph${has ? '' : ' ld is-noimg'}${multi ? ' is-multi' : ''}" ${multi ? `data-imgs="${esc(JSON.stringify(il))}"` : ''} tabindex="-1" aria-hidden="true">${has ? `<img src="${esc(il[0])}" alt="" loading="lazy" decoding="async">` : ''}${multi ? `<span class="pcard__dots" aria-hidden="true">${il.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : ''}</a>${d ? `<span class="pcard__off">-${d}%</span>` : ''}</div>
   <div class="pcard__body">${tag}<a href="${purl(p)}" class="pcard__name">${esc(p.name)}</a>${rate}
   <div class="price"><b>${fmt(p.price)}<small>جنيه</small></b>${d ? `<s>${money(p.old_price)}</s>` : ''}</div>
   <ul class="pcard__meta">${save ? `<li class="is-save">وفّر ${fmt(save)} جنيه</li>` : ''}<li class="${free ? 'is-free' : ''}">${free ? 'شحن مجاني' : `شحن مجاني فوق ${fmt(K.freeShipFrom)} جنيه`}</li>${low ? `<li class="is-low">متبقي ${p.stock} قطع فقط</li>` : ''}</ul>
@@ -240,11 +246,11 @@ const imgSrc = p => (/^https?:/.test(p.image || '') ? p.image : `/${String(p.ima
 /* كل صور المنتج: الرئيسية أولًا ثم الباقي (عمود images) بدون تكرار */
 const imgList = p => { const first = imgSrc(p); const rest = (Array.isArray(p.images) ? p.images : []).filter(Boolean).map(x => imgSrc({ image: x })).filter(x => x !== first); return [first, ...new Set(rest)]; };
 /* سكلتون بنفس شكل الكارت بالضبط: صورة + اسم + تقييم + سعر + زر */
-const skelCard = () => '<div class="pcard pcard--skel" aria-hidden="true"><div class="pcard__img sk"></div><div class="pcard__body"><i class="sk sk--tag"></i><i class="sk sk--l1"></i><i class="sk sk--l2"></i><i class="sk sk--rate"></i><i class="sk sk--price"></i><i class="sk sk--meta"></i><i class="sk sk--btn"></i></div></div>';
+const skelCard = () => '<div class="pcard pcard--skel" aria-hidden="true"><div class="pcard__media"><div class="pcard__img sk"></div></div><div class="pcard__body"><i class="sk sk--tag"></i><i class="sk sk--l1"></i><i class="sk sk--l2"></i><i class="sk sk--rate"></i><i class="sk sk--price"></i><i class="sk sk--meta"></i><i class="sk sk--btn"></i></div></div>';
 const skeletons = (n = 4) => Array.from({ length: n }, skelCard).join('');
 const skelQuad = n => Array.from({ length: n }, () => '<div class="qcard qcard--skel" aria-hidden="true"><i class="sk sk--title"></i><div class="qcard__grid">' + '<i class="sk sk--tile"></i>'.repeat(4) + '</div><i class="sk sk--meta"></i></div>').join('');
 /* سكلتون لكل صورة: يفضل يلمع لحد ما الصورة تحمّل */
-['load', 'error'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if (t && t.tagName === 'IMG') t.closest('.imgph')?.classList.add('ld'); }, true));
+['load', 'error'].forEach(ev => document.addEventListener(ev, e => { const t = e.target; if (t && t.tagName === 'IMG') { const b = t.closest('.imgph'); b?.classList.add('ld'); if (e.type === 'error' && b?.classList.contains('pcard__img')) b.classList.add('is-noimg'); } }, true));
 const errorBox = (msg = 'تعذر تحميل البيانات. تحقق من الاتصال ثم حاول مرة أخرى.') => `<div class="card empty"><p>${esc(msg)}</p><button class="btn btn-ghost" onclick="location.reload()">إعادة المحاولة</button></div>`;
 /* صور الحالات الفاضية: kind = cart | search | orders | notfound | imgsearch */
 const STATE_IMG = { cart: 'empty-cart', search: 'no-results', orders: 'no-results', notfound: '404', imgsearch: 'image-search' };
@@ -374,8 +380,73 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-add]'); if (!b) return;
   const p = PC[b.dataset.add]; if (!p) return;
   if (p.stock < 1) return toast('المنتج غير متوفر حاليًا', 'err');
-  Cart.add(p); toast('تمت إضافة المنتج إلى السلة');
+  Cart.add(p); toast('تمت إضافة المنتج إلى السلة'); pulseBtn(b);
 });
+
+/* ---------- أشكال الكروت (Variants) + الحركة ---------- */
+const CARD_MOTION = true;   /* false = قفل كل حركات الكروت (الشكل بيفضل زي ما هو) */
+const VARIANTS = 8;         /* لازم يساوي عدد .pcard--vN في main.css */
+const MOTION = CARD_MOTION && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!MOTION) document.documentElement.classList.add('no-motion');
+
+/* hash ثابت (FNV-1a) للـ slug/id: نفس المنتج = نفس الشكل في كل زيارة، من غير Math.random */
+function hashStr(str) {
+  let h = 2166136261; str = String(str);
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  h ^= h >>> 15; h = Math.imul(h, 2246822519); h ^= h >>> 13;
+  return h >>> 0;
+}
+const variantOf = p => (hashStr(p.slug || p.id || p.name || '') % VARIANTS) + 1;
+
+/* لو كارتين متجاورين طلعوا بنفس الشكل نغيّر التاني للشكل اللي بعده (تعديل بسيط بيحصل بس عند التصاق نفس الشكل) */
+const setVariant = (el, v) => { el.classList.remove(`pcard--v${el.dataset.v}`); el.classList.add(`pcard--v${v}`); el.dataset.v = v; };
+function spreadVariants(cards) {
+  for (const el of cards) {
+    const v = +el.dataset.v; if (!v) continue;
+    const near = []; let s = el.previousElementSibling;
+    while (s && near.length < 2) { if (s.classList.contains('pcard') && s.dataset.v) near.push(+s.dataset.v); s = s.previousElementSibling; }
+    if (!near.includes(v)) continue;
+    for (let k = 1; k < VARIANTS; k++) { const c = ((v - 1 + k) % VARIANTS) + 1; if (!near.includes(c)) { setVariant(el, c); break; } }
+  }
+}
+
+/* ظهور تدريجي مع السكرول: fade + translateY مع stagger */
+const revealIO = MOTION && 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+  let i = 0;
+  for (const en of entries) {
+    const el = en.target;
+    if (!el.isConnected) { revealIO.unobserve(el); continue; }
+    if (!en.isIntersecting) continue;
+    revealIO.unobserve(el);
+    el.style.setProperty('--pc-d', `${Math.min(i++, 8) * 70}ms`);
+    el.classList.remove('rv-pre'); el.classList.add('rv-in', 'is-seen');
+    setTimeout(() => el.classList.remove('rv-in'), 1000);
+  }
+}, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 }) : null;
+
+new MutationObserver(muts => {
+  const found = new Set();
+  for (const m of muts) for (const n of m.addedNodes) {
+    if (n.nodeType !== 1) continue;
+    if (n.matches('.pcard')) found.add(n); else if (n.firstElementChild) n.querySelectorAll('.pcard').forEach(c => found.add(c));
+  }
+  if (!found.size) return;
+  const cards = [...found].filter(c => c.isConnected && !c.classList.contains('pcard--skel'));
+  spreadVariants(cards);
+  if (revealIO) for (const c of cards) { c.classList.add('rv-pre'); revealIO.observe(c); }
+}).observe(document.documentElement, { childList: true, subtree: true });
+
+/* نبضة الزر + bounce لأيقونة السلة */
+function pulseBtn(b) {
+  if (!MOTION || !b) return;
+  b.classList.remove('is-pulse'); void b.offsetWidth; b.classList.add('is-pulse');
+  setTimeout(() => b.classList.remove('is-pulse'), 700);
+}
+function bumpCart() {
+  if (!MOTION) return;
+  const hosts = new Set($$('[data-cart-count]').map(el => el.closest('a,button')).filter(Boolean));
+  hosts.forEach(h => { h.classList.remove('cart-bump'); void h.offsetWidth; h.classList.add('cart-bump'); setTimeout(() => h.classList.remove('cart-bump'), 800); });
+}
 
 /* تبديل صور المنتج عند مرور المؤشر على الكارت (الصور اللي ما تتحمّلش بتتشال تلقائيًا) */
 (() => {

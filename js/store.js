@@ -401,7 +401,7 @@ async function mountAds(placement, before, { title = 'منتجات مموّلة'
     const list = data.slice(0, n), prods = await db.bySlugs(list.map(a => a.slug)), by = Object.fromEntries(prods.map(p => [p.slug, p]));
     const rows = list.filter(a => by[a.slug]); if (!rows.length) return;
     const sec = document.createElement('section'); sec.className = 'sec sec--ads';
-    sec.innerHTML = head(title, 'إعلانات من متاجر شريكة') + `<div class="grid">${rows.map(a => card(by[a.slug]).replace('<article class="pcard">', `<article class="pcard pcard--ad" data-ad="${esc(a.ad_id)}"><span class="pcard__sp">مُموّل</span>`)).join('')}</div>`;
+    sec.innerHTML = head(title, 'إعلانات من متاجر شريكة') + `<div class="grid">${rows.map(a => card(by[a.slug]).replace(/^<article class="([^"]*)"([^>]*)>/, (m, c, rest) => `<article class="${c} pcard--ad"${rest} data-ad="${esc(a.ad_id)}"><span class="pcard__sp">مُموّل</span>`)).join('')}</div>`;
     before.parentNode.insertBefore(sec, before);
     const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); const id = e.target.dataset.ad; if (once(`kt_ai_${id}`)) adEvent(id, 'impression'); } }), { threshold: .5 }) : null;
     $$('[data-ad]', sec).forEach(el => io ? io.observe(el) : (once(`kt_ai_${el.dataset.ad}`) && adEvent(el.dataset.ad, 'impression')));

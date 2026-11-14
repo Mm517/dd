@@ -854,3 +854,18 @@ svg.empty__img--noproducts{mix-blend-mode:normal;opacity:.7}
 html.no-motion .pcard,html.no-motion .pcard *,html.no-motion .pcard::before,html.no-motion .pcard *::after,html.no-motion .cart-bump *{animation:none!important;transition:none!important}
 html.no-motion .pcard.rv-pre{opacity:1!important}
 html.no-motion .pcard:hover,html.no-motion .pcard:active{transform:none}
+
+/* ---- زر أضف للسلة: هوفر (لمعة + رفع) وحالة "تمت الإضافة" + الصورة الطايرة ---- */
+.pcard__add{overflow:hidden}
+.pcard__add::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);opacity:0}
+@media(hover:hover){
+  .pcard__add:hover:not(:disabled){transform:translateY(-2px) scale(1.02)}
+  .pcard__add:hover:not(:disabled)::before{opacity:1;transform:translateX(120%);transition:transform .65s var(--pc-ease-soft)}
+}
+.pcard__add.is-done{background:var(--green-d)}
+.pcard__add.is-pulse{overflow:visible}
+.fly-ghost{position:fixed;z-index:200;pointer-events:none;border-radius:50%;background:#fff;box-shadow:0 6px 18px rgba(31,42,36,.28);display:grid;place-items:center;overflow:hidden;will-change:transform,opacity}
+.fly-ghost img{width:82%;height:82%;object-fit:contain}
+html.no-motion .fly-ghost,html.no-motion .pcard__add::before{display:none}
+@media(prefers-reduced-motion:reduce){.fly-ghost,.pcard__add::before{display:none}}

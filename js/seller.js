@@ -16,7 +16,7 @@ const approved = c => c.store.status === 'approved';
 const pgh = (t, s, act = '') => `<div class="pgh"><div><h2>${t}</h2>${s ? `<p>${s}</p>` : ''}</div><div>${act}</div></div>`;
 
 /* ======================= الدخول والتسجيل (بدون شل) ======================= */
-const authLayout = (inner, art = true) => `<div class="auth"><section class="auth__art"><div class="auth__logo"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY <span style="font-weight:400;opacity:.7;letter-spacing:0">| للبائعين</span></div>
+const authLayout = (inner, art = true) => `<div class="auth"><section class="auth__art">${window.Panel.authBrand('للبائعين')}
   <div><h2>اعرض منتجاتك لآلاف العملاء على Kitchenly</h2><ul>
   <li>${ic('store')}<span>متجر خاص بك على الموقع بصفحة ورابط مستقل</span></li>
   <li>${ic('chart')}<span>لوحة تحكم بالطلبات والتحليلات والمدفوعات</span></li>
@@ -71,14 +71,14 @@ function signupView(root) {
     if (step === 'account') {
       root.innerHTML = authLayout(`${bar(1)}<div><h1>أنشئ حساب بائع</h1><p>الخطوة 1 من 3: بيانات الدخول</p></div>
       <form id="f" class="fgrid" novalidate>${field('nm', 'اسمك', 'maxlength="80" autocomplete="name" required')}${field('em', 'البريد الإلكتروني', 'type="email" dir="ltr" autocomplete="email" required')}${field('pw', 'كلمة المرور', 'type="password" dir="ltr" minlength="8" autocomplete="new-password" required', '8 حروف على الأقل')}<p id="err" class="alert" role="alert" hidden></p><button class="btn btn-p btn-block" id="b">متابعة</button></form>
-      <p style="text-align:center;font-size:.92rem;color:var(--muted)">لديك حساب؟ <a class="link-b" data-l href="${BASE}/login?next=${encodeURIComponent(BASE + '/signup?step=store')}">سجّل دخولك</a> (حساب عميل Kitchenly يصلح أيضًا)</p>`);
+      <p style="text-align:center;font-size:.92rem;color:var(--muted)">لديك حساب؟ <a class="link-b" data-l href="${BASE}/login?next=${encodeURIComponent(BASE + '/signup?step=store')}">سجّل دخولك</a> (تقدر تستخدم نفس إيميل حسابك في المتجر، والجلسة هنا مستقلة)</p>`);
       $('#f').onsubmit = async e => {
         e.preventDefault(); const err = $('#err'), b = $('#b'); err.hidden = true;
         name = $('#nm').value.trim(); email = $('#em').value.trim(); pwd = $('#pw').value;
         if (name.length < 2) return show(err, 'اكتب اسمك'); if (!/^\S+@\S+\.\S+$/.test(email)) return show(err, 'اكتب بريدًا صحيحًا'); if (pwd.length < 8) return show(err, 'كلمة المرور 8 حروف على الأقل');
         b.disabled = true; const { data, error } = await sb.auth.signUp({ email, password: pwd, options: { data: { name } } }); b.disabled = false;
         if (error) return show(err, errMsg(error));
-        if (data.user && data.user.identities && data.user.identities.length === 0) return show(err, 'هذا الإيميل مسجّل بالفعل، سجّل دخولك بدل إنشاء حساب جديد');
+        if (data.user && data.user.identities && data.user.identities.length === 0) { show(err, 'الإيميل ده عليه حساب بالفعل (غالبًا حساب المتجر). سجّل دخولك بنفس الإيميل وكلمة مرور حسابه علشان نفتح لك متجر عليه، أو اكتب إيميل آخر. '); err.insertAdjacentHTML('beforeend', `<a class="link-b" data-l href="${BASE}/login?next=${encodeURIComponent(BASE + '/signup?step=store')}">الدخول بنفس الإيميل</a>`); return; }
         step = data.session ? 'store' : 'verify'; draw();
       };
     } else if (step === 'verify') {

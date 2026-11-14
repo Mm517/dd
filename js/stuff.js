@@ -17,26 +17,10 @@ const keepFocus = (el, sel, fn) => e => { const p = e.target.selectionStart; fn(
 
 /* ======================= الدخول ======================= */
 function loginView(root, { next, go }) {
-  const draw = (msg = '') => {
-    root.innerHTML = `<div class="auth"><section class="auth__art"><div class="auth__logo"><img src="/assets/img/logo-mark.jpg" alt="">KITCHENLY <span style="font-weight:400;opacity:.7;letter-spacing:0">| فريق العمل</span></div>
-      <div><h2>إدارة المتجر والطلبات والمنتجات في مكان واحد</h2><img src="/assets/img/pages/seller-login.webp" alt="طرد منتجات جاهز للشحن" width="320" height="320" style="margin-top:24px;width:min(320px,70%);height:auto;border-radius:20px;background:#fff"></div>
-      <p style="opacity:.6;font-size:.85rem">© Kitchenly ${new Date().getFullYear()}</p></section>
-      <section class="auth__form"><div class="auth__box"><div><h1>تسجيل دخول الفريق</h1><p>استخدم الحساب المسجّل ضمن فريق العمل.</p></div>
-      <form id="f" class="fgrid" novalidate>${field('em', 'البريد الإلكتروني', 'type="email" dir="ltr" autocomplete="email" required')}${field('pw', 'كلمة المرور', 'type="password" dir="ltr" autocomplete="current-password" required')}
-      <p id="err" class="alert" role="alert" ${msg ? '' : 'hidden'}>${esc(msg)}</p><button class="btn btn-p" id="b">دخول</button></form>
-      <p style="text-align:center;font-size:.9rem"><a class="link-b" href="/">العودة للموقع</a></p></div></section></div>`;
-    $('#f').onsubmit = async e => {
-      e.preventDefault(); const err = $('#err'), b = $('#b'); err.hidden = true; b.disabled = true;
-      const { error } = await sb.auth.signInWithPassword({ email: $('#em').value.trim(), password: $('#pw').value });
-      if (error) { b.disabled = false; err.textContent = /Invalid login/i.test(error.message) ? 'الإيميل أو كلمة المرور غير صحيحة' : 'تعذر تسجيل الدخول، حاول مرة أخرى'; err.hidden = false; return; }
-      const { data: ok } = await sb.rpc('kt_is_admin');
-      if (ok !== true) { await sb.auth.signOut(); b.disabled = false; err.textContent = 'هذا الحساب ليس ضمن فريق العمل'; err.hidden = false; return; }
-      go(next, true);
-    };
-  };
+  const check = async () => { const { data: ok } = await sb.rpc('kt_is_admin'); return ok === true ? true : 'هذا الحساب ليس ضمن فريق العمل. اطلب من المدير إضافة إيميلك من «فريقي» ثم سجّل دخولك.'; };
   sb.auth.getSession().then(async ({ data: { session } }) => {
-    if (session) { const { data: ok } = await sb.rpc('kt_is_admin'); if (ok === true) { go(next, true); return; } }
-    draw();
+    if (session && (await check()) === true) { go(next, true); return; }
+    window.Panel.staffAuth(root, { role: 'فريق العمل', title: 'إدارة المتجر والطلبات والمنتجات في مكان واحد', sub: 'للحسابات المسجّلة ضمن فريق العمل.', art: '/assets/img/pages/seller-login.webp', check, onDone: () => go(next, true) });
   });
 }
 async function guard({ go }) {
@@ -44,7 +28,7 @@ async function guard({ go }) {
   const toLogin = () => { go(`${BASE}/login?next=${encodeURIComponent(location.pathname)}`, true); return null; };
   if (!session) return toLogin();
   const { data: ok } = await sb.rpc('kt_is_admin');
-  if (ok !== true) { await sb.auth.signOut(); return toLogin(); }
+  if (ok !== true) { await window.Panel.signOutLocal(); return toLogin(); }
   return { user: session.user, name: 'فريق العمل' };
 }
 const badges = async () => {

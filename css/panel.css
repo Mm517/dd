@@ -144,6 +144,13 @@ dialog h2{font-size:1.2rem}
 .auth__art ul{display:grid;gap:14px;margin-top:28px;color:var(--side-ink)}
 .auth__art li{display:flex;gap:12px;align-items:flex-start}.auth__art li .i{color:var(--accent);margin-top:3px}
 .auth__logo{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.05em}.auth__logo img{width:40px;height:40px;border-radius:10px}
+/* هوية الجنب: أيقونة + كتشنلي + خط مايل */
+.auth__brand{display:flex;align-items:center;gap:16px}
+.auth__brand img{width:56px;height:56px;border-radius:16px;object-fit:cover;box-shadow:0 6px 20px rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.18)}
+.auth__word{display:grid;gap:0;line-height:1}
+.auth__word b{font-size:2.1rem;font-weight:700;letter-spacing:0;color:#fff}
+.auth__slash{display:block;height:5px;width:118%;max-width:170px;margin:7px 0 6px;border-radius:9px;background:linear-gradient(90deg,var(--accent),rgba(242,183,5,.25));transform:rotate(-4deg);transform-origin:right center}
+.auth__word small{font-size:.72rem;letter-spacing:.14em;color:var(--side-mute);font-weight:500}
 .auth__form{display:grid;place-items:center;padding:32px 20px;background:var(--surface)}
 .auth__box{width:min(420px,100%);display:grid;gap:18px}
 .auth__box h1{font-size:1.6rem;font-weight:600}.auth__box>p{color:var(--muted)}
@@ -167,3 +174,32 @@ dialog h2{font-size:1.2rem}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .sicon{width:56px;height:56px;object-fit:contain;flex:none}
+
+/* ---------- صفحة الطلب ---------- */
+.ostep{display:flex;gap:0;margin:4px 0 14px}
+.ostep li{flex:1;text-align:center;font-size:.76rem;color:var(--muted);position:relative;padding-top:26px}
+.ostep li::before{content:"";position:absolute;top:6px;inset-inline:0;height:4px;background:var(--line)}
+.ostep li::after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--line)}
+.ostep li.on{color:var(--ink)}.ostep li.on::before{background:var(--brand)}.ostep li.on::after{border-color:var(--brand);background:var(--brand)}
+.ostep.cx li.on::before{background:var(--red)}.ostep.cx li.on::after{border-color:var(--red);background:var(--red)}
+.od{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+.od__side{display:grid;gap:16px}
+.od .thumb{display:flex;align-items:center;gap:10px;min-width:180px}
+.od .thumb img{width:48px;height:48px;border-radius:10px;object-fit:cover;background:var(--line2)}
+.tot li{display:flex;justify-content:space-between;padding:6px 0;font-size:.92rem}.tot li.big{border-top:1px solid var(--line);margin-top:6px;padding-top:12px;font-size:1.08rem;font-weight:600}
+@media (max-width:1100px){.od{grid-template-columns:1fr}}
+@media print{.side,.top,.scrim,.no-print,.toast-wrap{display:none!important}.shell{display:block}.content{padding:0}.card{box-shadow:none}}
+/* ---------- كروت المتاجر ---------- */
+.stores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.scard{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.scard__cover{height:120px;background:linear-gradient(135deg,var(--brand-soft),var(--line2)) center/cover;position:relative}
+.scard__cover .badge{position:absolute;inset-block-start:10px;inset-inline-end:10px;background:#fff}
+.scard__logo{width:64px;height:64px;border-radius:16px;border:3px solid #fff;background:var(--surface);margin:-32px 18px 0;overflow:hidden;display:grid;place-items:center;color:var(--brand);box-shadow:var(--shadow);position:relative}
+.scard__logo img{width:100%;height:100%;object-fit:cover}
+.scard__body{padding:10px 18px 18px;display:grid;gap:12px;flex:1}
+.scard__body h3{font-size:1.1rem}
+.scard__desc{color:var(--muted);font-size:.86rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.scard__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.scard__stats div{background:var(--bg);border-radius:10px;padding:8px 4px;font-size:.78rem;color:var(--muted)}.scard__stats b{display:block;font-size:1rem;color:var(--ink)}
+.scard__imgs{display:flex;gap:6px;overflow:hidden}.scard__imgs img{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--line2)}
+.scard__act{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}

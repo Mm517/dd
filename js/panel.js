@@ -3,7 +3,10 @@
 (() => {
 'use strict';
 const K = window.KT;
-const sb = window.supabase.createClient(K.url, K.key);
+/* جلسة اللوحات (بائع / فريق / أدمن) مستقلة تمامًا عن جلسة العميل في المتجر: storageKey مختلف.
+   يعني دخول العميل للمتجر لا يفتح اللوحات تلقائيًا، وتسجيل الخروج من اللوحة لا يخرّج العميل من المتجر. */
+const sb = window.supabase.createClient(K.url, K.key, { auth: { storageKey: 'kt-panel-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+const signOutLocal = () => sb.auth.signOut({ scope: 'local' });
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -181,6 +184,103 @@ async function productForm({ p, cats, uid, admin = false, store = null, onSaved 
   });
 }
 
+
+/* ---------- تحميل تدريجي: دفعة صغيرة كل مرة (بدل تحميل كل البيانات) ---------- */
+/* fetchPage(offset, size) => { rows, total } ; renderRows(rows, first) يضيف العناصر في الحاوية ؛ بيرجّع { reload, stop } */
+function pager(host, { size = 20, fetchPage, renderRows, emptyHtml = '', onTotal }) {
+  let offset = 0, busy = false, done = false, gen = 0, io = null;
+  host.innerHTML = '<div data-rows></div><div data-more style="text-align:center;padding:14px"></div>';
+  const rowsEl = host.querySelector('[data-rows]'), more = host.querySelector('[data-more]');
+  const setMore = (state) => {
+    if (state === 'loading') more.innerHTML = '<span style="color:var(--muted);font-size:.88rem">جاري التحميل...</span>';
+    else if (state === 'more') { more.innerHTML = '<button class="btn btn-g" data-m>عرض المزيد</button>'; more.querySelector('[data-m]').onclick = load; }
+    else if (state === 'error') { more.innerHTML = '<button class="btn btn-g" data-m>تعذر التحميل، أعد المحاولة</button>'; more.querySelector('[data-m]').onclick = load; }
+    else more.innerHTML = '';
+  };
+  async function load() {
+    if (busy || done) return; busy = true; const g = gen; setMore('loading');
+    try {
+      const { rows, total } = await fetchPage(offset, size);
+      if (g !== gen) return;
+      if (offset === 0) { onTotal && onTotal(total); if (!rows.length) { rowsEl.innerHTML = emptyHtml; done = true; setMore(''); busy = false; return; } }
+      renderRows(rows, offset === 0, rowsEl); offset += rows.length;
+      done = rows.length < size || (total != null && offset >= total);
+      setMore(done ? '' : 'more');
+    } catch (e) { console.error(e); if (g === gen) { if (offset === 0) { rowsEl.innerHTML = errBox(); setMore(''); done = true; } else setMore('error'); } }
+    busy = false;
+  }
+  if ('IntersectionObserver' in window) { io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting) && offset > 0) load(); }, { rootMargin: '300px' }); io.observe(more); }
+  const reload = () => { gen++; offset = 0; done = false; busy = false; rowsEl.innerHTML = skel(180); load(); };
+  reload();
+  return { reload, stop: () => { gen++; io && io.disconnect(); } };
+}
+const debounce = (fn, ms = 350) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+/* تنظيف نص البحث قبل استخدامه في فلتر PostgREST (or/ilike) */
+const qClean = q => String(q || '').replace(/[,()%*\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+
+
+/* ---------- هوية صفحة الدخول (الجنب): أيقونة + كتشنلي + خط مايل تحتها ---------- */
+const authBrand = role => `<div class="auth__brand"><img src="/assets/img/logo-mark.jpg" alt="" width="56" height="56"><div class="auth__word"><b>كتشنلي</b><i class="auth__slash" aria-hidden="true"></i><small>KITCHENLY${role ? ` · ${esc(role)}` : ''}</small></div></div>`;
+
+/* ---------- دخول / إنشاء حساب للوحات الفريق والأدمن (صفحة خارجية بحساب مستقل) ----------
+   الدخول مسموح فقط لو الإيميل ضمن kt_admins (kt_is_admin). الإنشاء بإيميل جديد أو بنفس إيميل حسابك في المتجر. */
+function staffAuth(root, { role, title, sub, bullets = [], art, back = '/', onDone, check }) {
+  let mode = 'login', pending = '', pwd = '', prefill = '';
+  const errTxt = e => { const m = String(e?.message || e || ''); return /Invalid login/i.test(m) ? 'الإيميل أو كلمة المرور غير صحيحة' : /not confirmed/i.test(m) ? 'الحساب لم يتم تأكيده بعد، سجّل من جديد ليصلك كود' : /rate|too many|seconds/i.test(m) ? 'محاولات كثيرة، انتظر قليلًا ثم حاول مرة أخرى' : /expired|invalid.*(token|otp)|Token/i.test(m) ? 'الكود غير صحيح أو انتهت صلاحيته' : /password/i.test(m) ? 'كلمة المرور ضعيفة (8 حروف على الأقل)' : 'حدث خطأ، حاول مرة أخرى'; };
+  const fld = (id, label, attrs = '', hint = '') => `<div><label class="lbl" for="${id}">${label}</label><input class="field" id="${id}" ${attrs}>${hint ? `<p class="hint">${hint}</p>` : ''}</div>`;
+  const layout = inner => `<div class="auth"><section class="auth__art">${authBrand(role)}<div><h2>${esc(title)}</h2>${bullets.length ? `<ul>${bullets.map(([i, t]) => `<li>${ic(i)}<span>${esc(t)}</span></li>`).join('')}</ul>` : ''}${art ? `<img src="${art}" alt="" width="300" height="300" style="margin-top:20px;width:min(300px,70%);height:auto;border-radius:20px;background:#fff">` : ''}</div><p style="opacity:.6;font-size:.85rem">© Kitchenly ${new Date().getFullYear()}</p></section><section class="auth__form"><div class="auth__box">${inner}</div></section></div>`;
+  const show = (m, ok) => { const e = $('#err'); e.textContent = m; e.className = ok ? 'alert alert--ok' : 'alert'; e.hidden = false; };
+  const finish = async () => { const c = await check(); if (c === true) return onDone(); await signOutLocal(); mode = 'login'; draw(); show(c || 'هذا الحساب غير مصرّح له بدخول هذه اللوحة'); };
+  const tabs = () => `<div class="tabs" style="margin-bottom:0"><button type="button" data-md="login" aria-current="${mode === 'login'}">دخول</button><button type="button" data-md="signup" aria-current="${mode === 'signup'}">إنشاء حساب</button></div>`;
+  async function draw() {
+    if (mode === 'verify') {
+      root.innerHTML = layout(`<div><h1>أدخل كود التأكيد</h1><p>أرسلنا كودًا إلى <b dir="ltr">${esc(pending)}</b></p></div><form id="f" class="fgrid" novalidate>${fld('code', 'الكود', 'inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="------"').replace('class="field"', 'class="field code-in"')}<p id="err" class="alert" hidden></p><button class="btn btn-p btn-block" id="b">تأكيد</button></form><p style="text-align:center;font-size:.9rem;display:flex;gap:14px;justify-content:center"><button class="link-b" id="rs">أعد إرسال الكود</button><button class="link-b" id="back">رجوع</button></p>`);
+      $('#back').onclick = () => { mode = 'signup'; draw(); };
+      $('#rs').onclick = async () => { const { error } = await sb.auth.resend({ type: 'signup', email: pending }); toast(error ? errTxt(error) : 'تم إرسال كود جديد', error ? 'err' : ''); };
+      $('#f').onsubmit = async e => { e.preventDefault(); const t = $('#code').value.replace(/\D/g, ''); $('#err').hidden = true; if (t.length < 6) return show('اكتب الكود كاملًا'); $('#b').disabled = true; const { error } = await sb.auth.verifyOtp({ email: pending, token: t, type: 'signup' }); $('#b').disabled = false; if (error) return show(errTxt(error)); finish(); };
+      return;
+    }
+    if (mode === 'signup') {
+      root.innerHTML = layout(`<div><h1>إنشاء حساب ${esc(role)}</h1><p>${esc(sub)} الحساب هنا مستقل عن حساب المتجر، وتقدر تستخدم نفس إيميلك أو إيميل آخر.</p></div>${tabs()}<form id="f" class="fgrid" novalidate>${fld('nm', 'اسمك', 'maxlength="80" autocomplete="name"')}${fld('em', 'البريد الإلكتروني', `type="email" dir="ltr" autocomplete="email" value="${esc(prefill)}"`)}${fld('pw', 'كلمة المرور', 'type="password" dir="ltr" minlength="8" autocomplete="new-password"', '8 حروف على الأقل')}<p id="err" class="alert" role="alert" hidden></p><div id="ex" hidden style="display:flex;gap:8px;flex-wrap:wrap"></div><button class="btn btn-p btn-block" id="b">إنشاء الحساب</button></form><p style="text-align:center"><a class="link-b" href="${back}">العودة للموقع</a></p>`);
+      $$('[data-md]').forEach(b => b.onclick = () => { mode = b.dataset.md; draw(); });
+      $('#f').onsubmit = async e => {
+        e.preventDefault(); $('#err').hidden = true; $('#ex').hidden = true;
+        const name = $('#nm').value.trim(), email = $('#em').value.trim(), pw = $('#pw').value;
+        if (name.length < 2) return show('اكتب اسمك'); if (!/^\S+@\S+\.\S+$/.test(email)) return show('اكتب بريدًا صحيحًا'); if (pw.length < 8) return show('كلمة المرور 8 حروف على الأقل');
+        $('#b').disabled = true; const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { name } } }); $('#b').disabled = false;
+        if (error) return show(errTxt(error));
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          show('الإيميل ده عليه حساب بالفعل (غالبًا حساب المتجر). سجّل دخولك بنفس الإيميل وكلمة مرور حسابه، أو اكتب إيميل آخر.');
+          const ex = $('#ex'); ex.hidden = false; ex.innerHTML = '<button type="button" class="btn btn-g btn-sm" id="use">استخدم نفس الإيميل (دخول)</button><button type="button" class="btn btn-g btn-sm" id="other">إيميل آخر</button>';
+          $('#use').onclick = () => { prefill = email; mode = 'login'; draw(); };
+          $('#other').onclick = () => { $('#em').value = ''; $('#em').focus(); ex.hidden = true; $('#err').hidden = true; };
+          return;
+        }
+        pending = email; if (data.session) return finish(); mode = 'verify'; draw();
+      };
+      return;
+    }
+    const otp = mode === 'otp';
+    root.innerHTML = layout(`<div><h1>دخول ${esc(role)}</h1><p>${esc(sub)}</p></div>${tabs()}<form id="f" class="fgrid" novalidate>${fld('em', 'البريد الإلكتروني', `type="email" dir="ltr" autocomplete="email" value="${esc(prefill)}"`)}${otp ? '' : fld('pw', 'كلمة المرور', 'type="password" dir="ltr" autocomplete="current-password"')}<p id="err" class="alert" role="alert" hidden></p><button class="btn btn-p btn-block" id="b">${otp ? 'أرسل لي كود الدخول' : 'دخول'}</button></form><p style="text-align:center;font-size:.9rem"><button class="link-b" id="sw">${otp ? 'الدخول بكلمة المرور' : 'الدخول بكود يصلك على الإيميل'}</button></p><p style="text-align:center"><a class="link-b" href="${back}">العودة للموقع</a></p>`);
+    $$('[data-md]').forEach(b => b.onclick = () => { mode = b.dataset.md; draw(); });
+    $('#sw').onclick = () => { mode = otp ? 'login' : 'otp'; draw(); };
+    $('#f').onsubmit = async e => {
+      e.preventDefault(); $('#err').hidden = true; const email = $('#em').value.trim();
+      if (!/^\S+@\S+\.\S+$/.test(email)) return show('اكتب بريدًا صحيحًا');
+      $('#b').disabled = true;
+      if (otp) { const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } }); $('#b').disabled = false; if (error) return show(errTxt(error)); pending = email; mode = 'otpverify'; return drawOtp(); }
+      const { error } = await sb.auth.signInWithPassword({ email, password: $('#pw').value }); $('#b').disabled = false;
+      if (error) return show(errTxt(error)); finish();
+    };
+  }
+  function drawOtp() {
+    root.innerHTML = layout(`<div><h1>أدخل كود الدخول</h1><p>أرسلنا كودًا إلى <b dir="ltr">${esc(pending)}</b></p></div><form id="f" class="fgrid" novalidate>${fld('code', 'الكود', 'inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="------"').replace('class="field"', 'class="field code-in"')}<p id="err" class="alert" hidden></p><button class="btn btn-p btn-block" id="b">تأكيد</button></form><p style="text-align:center"><button class="link-b" id="back">رجوع</button></p>`);
+    $('#back').onclick = () => { mode = 'otp'; draw(); };
+    $('#f').onsubmit = async e => { e.preventDefault(); const t = $('#code').value.replace(/\D/g, ''); $('#err').hidden = true; if (t.length < 6) return show('اكتب الكود كاملًا'); $('#b').disabled = true; const { error } = await sb.auth.verifyOtp({ email: pending, token: t, type: 'email' }); $('#b').disabled = false; if (error) return show(errTxt(error)); finish(); };
+  }
+  draw();
+}
+
 /* ---------- الراوتر والهيكل ---------- */
 let CFG = null, CTX = null, shellOn = false;
 const rel = () => { const p = location.pathname.replace(/\/+$/, '') || '/'; return p === CFG.base ? '/' : p.startsWith(CFG.base + '/') ? p.slice(CFG.base.length) : '/'; };
@@ -197,19 +297,22 @@ function shellHtml(ctx) {
   <div class="main"><header class="top"><button class="burger" id="burger" aria-label="القائمة">${ic('menu')}</button><h1 id="ptitle"></h1><span class="top__sp"></span>${CFG.topExtra ? CFG.topExtra(ctx) : ''}<div class="me"><span class="me__av">${esc(nm.trim().charAt(0).toUpperCase() || 'K')}</span><div><b>${esc(ctx.name || 'حسابي')}</b><small dir="ltr">${esc(ctx.user?.email || '')}</small></div></div></header>
   <main class="content" id="view"></main></div></div>`;
 }
+const applyBadges = ctx => { if (CFG.badges) CFG.badges(ctx).then(b => Object.entries(b || {}).forEach(([k, n]) => { const el = $(`[data-cnt="${k}"]`); if (!el) return; el.textContent = n; el.hidden = !(n > 0); })).catch(() => {}); };
 function ensureShell(ctx) {
   if (!shellOn) {
     $('#root').innerHTML = shellHtml(ctx); shellOn = true;
     const close = () => document.body.classList.remove('nav-open');
     $('#burger').onclick = () => document.body.classList.toggle('nav-open'); $('#scrim').onclick = close;
-    $('#signout').onclick = async () => { await sb.auth.signOut(); shellOn = false; CTX = null; location.href = CFG.base + CFG.loginPath; };
+    $('#signout').onclick = async () => { await signOutLocal(); shellOn = false; CTX = null; location.href = CFG.base + CFG.loginPath; };
   }
-  if (CFG.badges) CFG.badges(ctx).then(b => Object.entries(b || {}).forEach(([k, n]) => { const el = $(`[data-cnt="${k}"]`); if (!el) return; el.textContent = n; el.hidden = !(n > 0); })).catch(() => {});
+  applyBadges(ctx);
   document.body.classList.remove('nav-open');
 }
 async function render() {
-  const key = canon(rel()), route = CFG.routes[key];
+  let key = canon(rel()), route = CFG.routes[key], params = {};
+  if (!route && CFG.patterns) for (const [rx, r] of CFG.patterns) { const m = key.match(rx); if (m) { route = r; params = { m, key }; break; } }
   window.scrollTo(0, 0);
+  if (route && CFG.aliases && CFG.aliases[rel()] && !params.m) history.replaceState(null, '', CFG.base + key);
   if (!route) return go(CFG.base + CFG.home, true);
   if (route.public) {
     shellOn = false; document.body.classList.remove('nav-open'); document.title = `${route.title} | Kitchenly`;
@@ -218,12 +321,12 @@ async function render() {
   const ctx = await CFG.guard({ go, sb, nextUrl });
   if (!ctx) { shellOn = false; return; }
   CTX = ctx; ensureShell(ctx);
-  const paths = CFG.nav.filter(n => n.path).map(n => n.path), best = paths.filter(p => key === p || (p !== '/' && key.startsWith(p + '/'))).sort((a, b) => b.length - a.length)[0];
+  const paths = CFG.nav.filter(n => n.path).map(n => n.path), best = route.nav || paths.filter(p => key === p || (p !== '/' && key.startsWith(p + '/'))).sort((a, b) => b.length - a.length)[0];
   $$('.side nav a').forEach(a => { if (a.dataset.path === best) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   $('#ptitle').textContent = route.title; document.title = `${route.title} | ${CFG.docTitle}`;
-  const view = $('#view'); view.innerHTML = skel(220);
+  const oldV = $('#view'), view = oldV.cloneNode(false); oldV.replaceWith(view); view.innerHTML = skel(220); /* عنصر جديد كل مرة: يمنع تراكم مستمعات الأحداث */
   if (route.needs && !route.needs(ctx)) { view.innerHTML = CFG.locked(ctx); return; }
-  try { await route.view(view, ctx); } catch (e) { console.error(e); view.innerHTML = errBox(); }
+  try { await route.view(view, ctx, params); } catch (e) { console.error(e); view.innerHTML = errBox(); }
 }
 function start(cfg) {
   CFG = cfg;
@@ -233,5 +336,5 @@ function start(cfg) {
   if (document.readyState !== 'loading') render();
 }
 
-window.Panel = { sb, K, $, $$, esc, fmt, money, moneyT, date, dt, ic, toast, modal, ask, skel, empty, errBox, badge, ORDER, STORE, PROD, AD, PLACE, GOAL, orderBadge, sBadge, areaChart, barChart, hbars, lastDays, dkey, dshort, sum, csv, loadSales, groupOrders, uploadImage, imageField, bindImage, productForm, SLUG, rand, go, start, refresh: render };
+window.Panel = { sb, K, signOutLocal, refreshBadges: () => CTX && applyBadges(CTX), pager, debounce, qClean, authBrand, staffAuth, $, $$, esc, fmt, money, moneyT, date, dt, ic, toast, modal, ask, skel, empty, errBox, badge, ORDER, STORE, PROD, AD, PLACE, GOAL, orderBadge, sBadge, areaChart, barChart, hbars, lastDays, dkey, dshort, sum, csv, loadSales, groupOrders, uploadImage, imageField, bindImage, productForm, SLUG, rand, go, start, refresh: render };
 })();

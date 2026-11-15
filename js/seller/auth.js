@@ -8,7 +8,7 @@
 'use strict';
 const NS = (window.Panel.seller = window.Panel.seller || {});
 const { sb, $, esc, ic, toast, errBox, SLUG, rand, go } = window.Panel;
-const { BASE, GOVS, BTYPES, errMsg, field, sel } = NS;   // js/seller/shared.js
+const { BASE, GOVS, BTYPES, RESERVED, errMsg, field, sel } = NS;   // js/seller/shared.js
 
 /* ===================== #seller-auth: الدخول والتسجيل (بدون شل) ===================== */
 // #seller #auth #login #signup
@@ -91,7 +91,7 @@ function signupView(root) {
       $('#f').onsubmit = async e => {
         e.preventDefault(); const err = $('#err'), b = $('#b'); err.hidden = true;
         const row = { name: $('#sn').value.trim(), slug: $('#ss').value.trim().toLowerCase(), phone: $('#sp').value.trim(), city: $('#sc').value, business_type: $('#sb').value, description: $('#sd').value.trim() };
-        if (row.name.length < 2) return show(err, 'اكتب اسم المتجر'); if (row.slug && !SLUG.test(row.slug)) return show(err, 'الرابط حروف إنجليزية صغيرة وأرقام مفصولة بشرطات'); if (!/^(\+?20|0)?1[0125]\d{8}$/.test(row.phone.replace(/\s/g, ''))) return show(err, 'اكتب رقم موبايل مصري صحيح'); if (!row.city) return show(err, 'اختر المحافظة'); if (!row.business_type) return show(err, 'اختر نوع النشاط'); if (!$('#tm').checked) return show(err, 'لازم توافق على الشروط');
+        if (row.name.length < 2) return show(err, 'اكتب اسم المتجر'); if (row.slug && !SLUG.test(row.slug)) return show(err, 'الرابط حروف إنجليزية صغيرة وأرقام مفصولة بشرطات'); if (RESERVED.includes(row.slug)) return show(err, 'اسم الرابط ده محجوز، اختار اسم تاني'); if (!/^(\+?20|0)?1[0125]\d{8}$/.test(row.phone.replace(/\s/g, ''))) return show(err, 'اكتب رقم موبايل مصري صحيح'); if (!row.city) return show(err, 'اختر المحافظة'); if (!row.business_type) return show(err, 'اختر نوع النشاط'); if (!$('#tm').checked) return show(err, 'لازم توافق على الشروط');
         if (!row.slug) row.slug = `store-${rand(6)}`;
         const { data: { session } } = await sb.auth.getSession(); if (!session) { step = 'account'; return draw(); }
         row.owner_id = session.user.id; b.disabled = true;

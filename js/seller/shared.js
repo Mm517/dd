@@ -2,7 +2,7 @@
  * js/seller/shared.js
  * الوظيفة: ثوابت وأدوات مشتركة بين صفحات لوحة البائع (محافظات، أنواع النشاط، حقول، جداول) وسجل الصفحات (pages).
  * يعتمد على: window.Panel [sb, esc, ic]
- * يعرض على window.Panel.seller: BASE, GOVS, BTYPES, errMsg, field, sel, tbl, balance, stat, live, approved, pgh, pages
+ * يعرض على window.Panel.seller: BASE, GOVS, BTYPES, RESERVED, errMsg, field, sel, tbl, balance, stat, live, approved, pgh, pages
  * ===================================================================== */
 (() => {
 'use strict';
@@ -13,8 +13,9 @@ const { sb, esc, ic } = window.Panel;
 // #seller #shared #helpers #forms #tables
 const BASE = '/be-seller';
 const GOVS = ['القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر', 'البحيرة', 'الفيوم', 'الغربية', 'الإسماعيلية', 'المنوفية', 'المنيا', 'القليوبية', 'الوادي الجديد', 'السويس', 'الشرقية', 'أسوان', 'أسيوط', 'بني سويف', 'بورسعيد', 'دمياط', 'جنوب سيناء', 'كفر الشيخ', 'مطروح', 'الأقصر', 'قنا', 'شمال سيناء', 'سوهاج'];
+const RESERVED = ['admin', 'stuff', 'be-seller', 'store', 'product', 'category', 'offers', 'shop', 'cart', 'checkout', 'track', 'auth', 'account', 'profile', 'about', 'help', 'privacy', 'policy', 'policies', 'join-us', 'yours-offer', 'contact', 'order-success', 'offline', 'assets', 'css', 'js', 'supabase', 'docs', 'premium-site', 'premuim', 'login', 'signup', 'dashboard', 'kitchenly', 'api'];   // أسماء محجوزة: موقع البريميوم على domain/<slug>
 const BTYPES = ['أدوات تنظيف', 'أدوات مطبخ', 'منظمات وتخزين', 'أجهزة منزلية صغيرة', 'مصنع / مورّد جملة', 'أخرى'];
-const errMsg = e => { const m = String(e?.message || e || ''); return /Invalid login/i.test(m) ? 'الإيميل أو كلمة المرور غير صحيحة' : /not confirmed/i.test(m) ? 'الحساب لم يتم تأكيده بعد، اطلب كود جديد' : /already|registered/i.test(m) ? 'هذا الإيميل مسجّل بالفعل، سجّل دخولك' : /rate|too many|seconds/i.test(m) ? 'محاولات كثيرة، انتظر قليلًا ثم حاول مرة أخرى' : /expired|invalid.*(token|otp)|Token/i.test(m) ? 'الكود غير صحيح أو انتهت صلاحيته' : /password/i.test(m) ? 'كلمة المرور ضعيفة (8 حروف على الأقل)' : 'حدث خطأ، حاول مرة أخرى'; };
+const errMsg = e => { const m = String(e?.message || e || ''); return /Invalid login/i.test(m) ? 'الإيميل أو كلمة المرور غير صحيحة' : /not confirmed/i.test(m) ? 'الحساب لم يتم تأكيده بعد، اطلب كود جديد' : /already|registered/i.test(m) ? 'هذا الإيميل مسجّل بالفعل، سجّل دخولك' : /rate|too many|seconds/i.test(m) ? 'محاولات كثيرة، انتظر قليلًا ثم حاول مرة أخرى' : /expired|invalid.*(token|otp)|Token/i.test(m) ? 'الكود غير صحيح أو انتهت صلاحيته' : /slug_reserved/i.test(m) ? 'اسم الرابط ده محجوز، اختار اسم تاني' : /password/i.test(m) ? 'كلمة المرور ضعيفة (8 حروف على الأقل)' : 'حدث خطأ، حاول مرة أخرى'; };
 const field = (id, label, attrs = '', hint = '') => `<div><label class="lbl" for="${id}">${label}</label><input class="field" id="${id}" ${attrs}>${hint ? `<p class="hint">${hint}</p>` : ''}</div>`;
 const sel = (id, label, opts, val = '', ph = '') => `<div><label class="lbl" for="${id}">${label}</label><select class="field" id="${id}">${ph ? `<option value="">${ph}</option>` : ''}${opts.map(o => { const [v, t] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}" ${String(v) === String(val) ? 'selected' : ''}>${esc(t)}</option>`; }).join('')}</select></div>`;
 const tbl = (head, rows, empt) => rows.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>` : empt;
@@ -28,5 +29,5 @@ const pgh = (t, s, act = '') => `<div class="pgh"><div><h2>${t}</h2>${s ? `<p>${
 // #seller #pages-registry
 const pages = {};
 
-Object.assign(NS, { BASE, GOVS, BTYPES, errMsg, field, sel, tbl, balance, stat, live, approved, pgh, pages });
+Object.assign(NS, { BASE, GOVS, BTYPES, RESERVED, errMsg, field, sel, tbl, balance, stat, live, approved, pgh, pages });
 })();

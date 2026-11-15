@@ -13,7 +13,8 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 | صفحة متجر بائع | `/store/<slug>` |
 | سلة، دفع، تتبع، دخول، لوحة تحكم | `cart.html` `checkout.html` `track.html` `auth.html` |
 | البروفايل | `/profile` ، `/profile/my-orders` ، `/profile/my-reviews` |
-| لوحة فريق العمل | `/stuff/login` ، `/stuff/help-requests` (`/users` `/seller`) ، `/stuff/store` (`/details` `/details/products` `/details/images` `/details/money`) ، `/stuff/my-team` |
+| لوحة فريق العمل | لوحة البائع: بريميوم | `/be-seller/premuim/code-entering` ، `/be-seller/premuim/build-ownstore` (`/template` `/code-yo` `/code-yo/write-and-create` `/code-yo/upload`) ، `/be-seller/premuim/premuim-own-templat/templates` ، `/be-seller/premuim/template-sdeded/edit` |
+| `/stuff/login` ، `/stuff/help-requests` (`/users` `/seller`) ، `/stuff/store` (`/details` `/details/products` `/details/images` `/details/money`) ، `/stuff/my-team` |
 | مساعدة، خصوصية، سياسات، انضم إلينا، عروضك | `/help` ، `/privacy` ، `/policy` ، `/join-us` ، `/yours-offer` |
 
 الروابط كلها تبدأ بـ `/` فلازم الموقع يتفتح من جذر الدومين (Vercel/Netlify)، وليس بفتح الملف مباشرة. قواعد إعادة التوجيه موجودة في `vercel.json` و `_redirects`.
@@ -84,11 +85,14 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 
 **البائع `/be-seller/...`**: `login` `signup` `dashboard` `dashboard/orders` `dashboard/products` `dashboard/payouts` `dashboard/analystics` `dashboard/campings` `dashboard/campings/ads` `dashboard/store` `dashboard/settings` `dashboard/help`
 
+**البريميوم (داخل `/be-seller/`)**: `premuim/code-entering` (تفعيل بالكود) ← `premuim/build-ownstore` ← `template` أو `code-yo` (`write-and-create` / `upload`) ، و `premuim/premuim-own-templat/templates` ، و `premuim/template-sdeded/edit`. الموقع المنشور بيظهر في `/store/<slug>` (والصفحة العادية في `?classic=1`).
+
 **الأدمن `/admin/...`**: `/` `orders` `products` `product-requests` `categories` `stores` `seller-request` `ads` `money` `analistcs` `customers` `messages`
 
 ### التشغيل (مرة واحدة على Supabase → SQL Editor، بالترتيب)
 1. `supabase/seller-marketplace.sql`
 2. `supabase/seller-marketplace-patch.sql` (منع حذف منتج عليه طلبات، قفل السحب، قفل المتجر الموقوف)
+3. `supabase/seller-premium.sql` (كود التفعيل + جدول موقع المتجر). لإنشاء كود: `insert into kt_premium_codes (code, days) values ('KT-PREMIUM-2026', 365);`
 
 ### الإعلانات والمشاهدات
 الرئيسية وصفحات الأقسام والمنتجات بتعرض إعلانات نشطة (`kt_active_ads`) بعلامة «مُموّل»، وبتسجّل ظهور/نقرة (`kt_ad_event`) مرة لكل جلسة. صفحة المنتج بتسجّل مشاهدة (`kt_track_view`) للتحليلات.

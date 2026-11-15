@@ -91,7 +91,7 @@
 
 **admin:** `js/core/config.js` ← `js/panel/core.js` ← `js/panel/ui.js` ← `js/panel/charts.js` ← `js/panel/uploads.js` ← `js/panel/product-form.js` ← `js/panel/list-tools.js` ← `js/panel/staff-auth.js` ← `js/panel/router.js` ← `js/admin/shared.js` ← `js/admin/auth.js` ← `js/admin/overview.js` ← `js/admin/orders.js` ← `js/admin/products.js` ← `js/admin/product-requests.js` ← `js/admin/stores.js` ← `js/admin/ads.js` ← `js/admin/money.js` ← `js/admin/analytics.js` ← `js/admin/categories.js` ← `js/admin/messages.js` ← `js/admin/customers.js` ← `js/admin/index.js`
 
-**be-seller:** `js/core/config.js` ← `js/panel/core.js` ← `js/panel/ui.js` ← `js/panel/charts.js` ← `js/panel/uploads.js` ← `js/panel/product-form.js` ← `js/panel/list-tools.js` ← `js/panel/staff-auth.js` ← `js/panel/router.js` ← `js/seller/shared.js` ← `js/seller/auth.js` ← `js/seller/overview.js` ← `js/seller/orders.js` ← `js/seller/products.js` ← `js/seller/analytics.js` ← `js/seller/store.js` ← `js/seller/marketing.js` ← `js/seller/payouts.js` ← `js/seller/settings.js` ← `js/seller/index.js`
+**be-seller:** `js/core/config.js` ← `js/panel/core.js` ← `js/panel/ui.js` ← `js/panel/charts.js` ← `js/panel/uploads.js` ← `js/panel/product-form.js` ← `js/panel/list-tools.js` ← `js/panel/staff-auth.js` ← `js/panel/router.js` ← `js/seller/shared.js` ← `js/seller/auth.js` ← `js/seller/overview.js` ← `js/seller/orders.js` ← `js/seller/products.js` ← `js/seller/analytics.js` ← `js/seller/store.js` ← `js/seller/marketing.js` ← `js/seller/payouts.js` ← `js/seller/settings.js` ← `js/seller/premium.js` ← `js/seller/index.js`
 
 **stuff:** `js/core/config.js` ← `js/panel/core.js` ← `js/panel/ui.js` ← `js/panel/charts.js` ← `js/panel/uploads.js` ← `js/panel/product-form.js` ← `js/panel/list-tools.js` ← `js/panel/staff-auth.js` ← `js/panel/router.js` ← `js/stuff/shared.js` ← `js/stuff/auth.js` ← `js/stuff/help.js` ← `js/stuff/store.js` ← `js/stuff/team.js` ← `js/stuff/index.js`
 
@@ -164,6 +164,7 @@
 |  |  | `js/seller/store.js` | 34 | بيانات متجر البائع (جدول kt_stores). |
 |  |  | `js/seller/marketing.js` | 53 | التسويق: الحملات والإعلانات المموّلة. |
 |  |  | `js/seller/payouts.js` | 30 | مدفوعات البائع وطلب السحب (kt_request_payout). |
+|  |  | `js/seller/premium.js` | 230 | البريميوم: تفعيل بالكود (`/premuim/code-entering`) وبناء المتجر بقالب جاهز أو بالكود أو برفع ملفات (`/premuim/build-ownstore/...`). الجداول في `supabase/seller-premium.sql`. |
 |  |  | `js/seller/settings.js` | 38 | إعدادات البائع وصفحة المساعدة (رسائل kt_messages). |
 |  |  | `js/seller/index.js` | 35 | تسجيل لوحة البائع في الراوتر (Panel.start). |
 | `js/stuff.js` | 178 | `js/stuff/shared.js` | 31 | ثوابت وأدوات مشتركة بين صفحات لوحة الفريق (Kitchenly Stuff) وسجل الصفحات (pages). |

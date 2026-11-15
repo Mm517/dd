@@ -1,5 +1,5 @@
 /* Kitchenly service worker: يخلّي الموقع يتثبّت كتطبيق ويفتح بسرعة وبدون اتصال (للصفحات اللي اتفتحت قبل كده). */
-const V = 'kt-v5', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
+const V = 'kt-v6', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
 const SHELL = [
   '/offline.html',
   '/css/base.css',

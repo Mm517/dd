@@ -25,3 +25,7 @@ svg.empty__img--noproducts{mix-blend-mode:normal;opacity:.7}
 
 /* غلاف المتجر الافتراضي (فاتح) = نص غامق */
 .storehd.storehd--def,.storehd.storehd--def h1,.storehd.storehd--def p{color:var(--ink)}
+
+/* موقع بريميوم منشور داخل /store/<slug> */
+/* #partner-store #premium-site */
+.sitef{display:block;width:100%;height:calc(100vh - 120px);min-height:560px;border:0;background:#fff}

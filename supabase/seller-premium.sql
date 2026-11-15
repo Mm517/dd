@@ -91,3 +91,16 @@ create policy kt_sites_admin      on public.kt_store_sites for all using (public
 
 -- لإنشاء كود تفعيل (الأدمن):
 --   insert into public.kt_premium_codes (code, days, note) values ('KT-PREMIUM-2026', 365, 'سنة');
+
+-- 4) أسماء محجوزة: موقع البريميوم بيشتغل على domain/<slug> فلازم الـ slug ما يتعارضش مع صفحات الموقع
+create or replace function public.kt_slug_reserved() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  if public.kt_is_admin() then return new; end if;
+  if new.slug = any (array['admin','stuff','be-seller','store','product','category','offers','shop','cart','checkout','track','auth','account','profile','about','help','privacy','policy','policies','join-us','yours-offer','contact','order-success','offline','assets','css','js','supabase','docs','premium-site','premuim','login','signup','dashboard','kitchenly','api']) then
+    raise exception 'slug_reserved';
+  end if;
+  return new;
+end $$;
+drop trigger if exists kt_stores_slug_reserved_t on public.kt_stores;
+create trigger kt_stores_slug_reserved_t before insert on public.kt_stores for each row execute function public.kt_slug_reserved();

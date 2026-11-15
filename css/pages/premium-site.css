@@ -1,0 +1,17 @@
+/* =====================================================================
+ * css/pages/premium-site.css
+ * الوظيفة: صفحة موقع المتجر البريميوم (domain/<slug>): شريط Kitchenly رفيع + الموقع في إطار بملء الشاشة.
+ * الترتيب: آخر ملف في صفحة premium-site. الترتيب جزء من الأولوية (cascade).
+ * ===================================================================== */
+/* #premium-site #iframe #bar */
+body[data-page="premiumSite"]{margin:0;overflow:hidden}
+body[data-page="premiumSite"] #app{min-height:0}
+.psx{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.psx__bar{display:flex;align-items:center;gap:18px;height:42px;padding:0 16px;background:#14301f;color:#d8e6dc;font-size:.82rem;flex:none}
+.psx__bar a{color:inherit}.psx__bar a:hover{color:#fff}
+.psx__brand{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.04em;color:#fff!important}
+.psx__brand img{width:22px;height:22px;border-radius:6px;object-fit:cover}
+.psx__sp{flex:1}
+.psx__cart b{background:#f2b705;color:#2a2000;border-radius:99px;padding:0 7px;margin-inline-start:4px;font-size:.72rem}
+.psx__f{flex:1;width:100%;border:0;background:#fff;display:block}
+.psx--load .skel{border-radius:0}

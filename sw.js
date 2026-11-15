@@ -1,5 +1,5 @@
 /* Kitchenly service worker: يخلّي الموقع يتثبّت كتطبيق ويفتح بسرعة وبدون اتصال (للصفحات اللي اتفتحت قبل كده). */
-const V = 'kt-v6', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
+const V = 'kt-v7', STATIC = `${V}-static`, PAGES = `${V}-pages`, IMGS = `${V}-img`;
 const SHELL = [
   '/offline.html',
   '/css/base.css',
@@ -26,6 +26,7 @@ const SHELL = [
   '/css/components/tabbar-glass.css',
   '/css/components/install-banner.css',
   '/css/pages/partner-store.css',
+  '/css/pages/premium-site.css',
   '/css/components/product-card-motion.css',
   '/js/core/config.js',
   '/js/core/utils.js',
@@ -55,6 +56,7 @@ const SHELL = [
   '/js/pages/contact-404.js',
   '/js/features/ads.js',
   '/js/pages/partner-store.js',
+  '/js/pages/premium-site.js',
   '/js/pages/auth.js',
   '/js/features/reviews.js',
   '/js/pages/profile.js',

@@ -85,7 +85,7 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 
 **البائع `/be-seller/...`**: `login` `signup` `dashboard` `dashboard/orders` `dashboard/products` `dashboard/payouts` `dashboard/analystics` `dashboard/campings` `dashboard/campings/ads` `dashboard/store` `dashboard/settings` `dashboard/help`
 
-**البريميوم (داخل `/be-seller/`)**: `premuim/code-entering` (تفعيل بالكود) ← `premuim/build-ownstore` ← `template` أو `code-yo` (`write-and-create` / `upload`) ، و `premuim/premuim-own-templat/templates` ، و `premuim/template-sdeded/edit`. الموقع المنشور بيظهر في `/store/<slug>` (والصفحة العادية في `?classic=1`).
+**البريميوم (داخل `/be-seller/`)**: `premuim/code-entering` (تفعيل بالكود) ← `premuim/build-ownstore` ← `template` أو `code-yo` (`write-and-create` / `upload`) ، و `premuim/premuim-own-templat/templates` ، و `premuim/template-sdeded/edit`. الموقع المنشور للمتجر البريميوم بيظهر على `/<slug>` (صفحة `premium-site/index.html`، متصلة بمنتجات المتجر والسلة عبر `window.KITCHENLY`)، والمتاجر العادية تفضل على `/store/<slug>` (والصفحة العادية للبريميوم على `/store/<slug>?classic=1`).
 
 **الأدمن `/admin/...`**: `/` `orders` `products` `product-requests` `categories` `stores` `seller-request` `ads` `money` `analistcs` `customers` `messages`
 

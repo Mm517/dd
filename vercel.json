@@ -79,6 +79,10 @@
     {
       "source": "/track",
       "destination": "/track.html"
+    },
+    {
+      "source": "/:slug([a-z0-9-]+)",
+      "destination": "/premium-site/index.html"
     }
   ],
   "headers": [

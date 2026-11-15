@@ -7,7 +7,7 @@
 (() => {
 'use strict';
 const NS = (window.KTApp = window.KTApp || {});
-const { $, $$, esc, ic, db, card, skeletons, noProducts, emptyBox, pages, setHashtag } = window.KTApp;
+const { $, $$, esc, ic, db, sb, card, skeletons, noProducts, emptyBox, pages, setHashtag } = window.KTApp;
 const { sortBar, viewMode, viewBar, sortList } = NS;   // js/ui/list-parts.js
 
 /* ===================== #partner-store: صفحة المتجر الشريك ===================== */
@@ -19,6 +19,12 @@ pages.store = async () => {
   const st = slug ? await db.store(slug).catch(() => null) : null;
   if (!st) { document.title = 'المتجر غير موجود | Kitchenly'; app.innerHTML = `<div class="wrap page">${emptyBox('لم نجد هذا المتجر. ربما تم إيقافه أو تغير رابطه.', '/shop.html', 'تصفح المنتجات', 'notfound')}</div>`; return; }
   document.title = `${st.name} | Kitchenly`; setHashtag(`#${st.name.trim().replace(/\s+/g, '_')}`);
+  /* موقع البريميوم المنشور (قالب أو كود): يظهر في إطار معزول. ?classic=1 يرجّع الصفحة العادية */
+  const site = new URLSearchParams(location.search).has('classic') ? null : await sb.from('kt_store_sites').select('html,css,js').eq('store_id', st.id).eq('published', true).maybeSingle().then(r => r.data).catch(() => null);
+  if (site?.html) {
+    const doc = ((h, c, j) => { const sty = c.trim() ? `<style>${c.replace(/<\/style/gi, '<\\/style')}</style>` : '', scr = j.trim() ? `<script>${j.replace(/<\/script/gi, '<\\/script')}<\/script>` : ''; if (/<html[\s>]/i.test(h)) { const d = /<\/head>/i.test(h) ? h.replace(/<\/head>/i, () => `${sty}</head>`) : sty + h; return /<\/body>/i.test(d) ? d.replace(/<\/body>/i, () => `${scr}</body>`) : d + scr; } return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${sty}</head><body>${h}${scr}</body></html>`; })(site.html, site.css || '', site.js || '');
+    app.innerHTML = `<iframe class="sitef" title="${esc(st.name)}" sandbox="allow-scripts allow-popups allow-forms allow-modals"></iframe>`; $('.sitef').srcdoc = doc; return;
+  }
   app.innerHTML = `<div class="wrap page"><nav class="crumbs" aria-label="مسار التصفح"><a href="/">الرئيسية</a><span>/</span><span>${esc(st.name)}</span></nav>
   <header class="storehd${st.cover ? '' : ' storehd--def'}"${st.cover ? ` style="background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${esc(st.cover)}')"` : ` style="background-image:linear-gradient(270deg,rgba(255,255,255,.92),rgba(255,255,255,.6) 55%,rgba(255,255,255,.1)),url('/assets/img/pages/seller-cover.webp')"`}>
     <span class="storehd__lg">${st.logo ? `<img src="${esc(st.logo)}" alt="">` : ic('box', 'ico-lg')}</span>

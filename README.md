@@ -83,9 +83,9 @@ HTML + CSS + JavaScript فقط (بدون Tailwind). قاعدة البيانات 
 ## السوق (متاجر البائعين)
 صفحتان كاملتان مستقلتان عن الموقع (بدون هيدر ولا بحث): `css/panel.css` + `js/panel/` (النواة المشتركة) + `js/seller/` أو `js/admin/`. الراوتر بـ History API وقواعد rewrite في `vercel.json` و `_redirects`.
 
-**البائع `/be-seller/...`**: `login` `signup` `dashboard` `dashboard/orders` `dashboard/products` `dashboard/payouts` `dashboard/analystics` `dashboard/campings` `dashboard/campings/ads` `dashboard/store` `dashboard/settings` `dashboard/help`
+**البائع `/be-seller/...`**: `login` `signup` `signup/first` `signup/second` `signup/finish` `dashboard` `dashboard/orders` `dashboard/products` `dashboard/payouts` `dashboard/analystics` `dashboard/campings` `dashboard/campings/ads` `dashboard/store` `dashboard/settings` `dashboard/help`
 
-**البريميوم (داخل `/be-seller/`)**: `premuim/code-entering` (تفعيل بالكود) ← `premuim/build-ownstore` ← `template` أو `code-yo` (`write-and-create` / `upload`) ، و `premuim/premuim-own-templat/templates` ، و `premuim/template-sdeded/edit`. الموقع المنشور للمتجر البريميوم بيظهر على `/<slug>` (صفحة `premium-site/index.html`، متصلة بمنتجات المتجر والسلة عبر `window.KITCHENLY`)، والمتاجر العادية تفضل على `/store/<slug>` (والصفحة العادية للبريميوم على `/store/<slug>?classic=1`).
+**البريميوم (داخل `/be-seller/`)**: `premuim/code-entering` (تفعيل بالكود) ← `premuim/build-ownstore` ← `template` أو `code-yo` (`write-and-create` / `upload`) ، و `premuim/premuim-own-templat/templates` ، و `premuim/template-sdeded/edit`. `/be-seller/premuim` = رئيسية البريميوم (و`/premuim` بتحوّل لها). صفحة `code-entering` بتختفي بعد التفعيل وتحوّل لـ `/premuim` (والسيرفر بيرفض كود تاني: `already_premium`). الموقع المنشور بيظهر على `/<slug>` كصفحة عادية جوه الموقع (مش iframe) بالرسم المشترك `js/shared/premium-store.js`؛ وضع الكود/الرفع بيعرض HTML و CSS فقط (الـ JavaScript بيتشال) وفيه `data-kt-products` لعرض المنتجات، والمتاجر العادية تفضل على `/store/<slug>` (والصفحة العادية للبريميوم على `/store/<slug>?classic=1`).
 
 **الأدمن `/admin/...`**: `/` `orders` `products` `product-requests` `categories` `stores` `seller-request` `ads` `money` `analistcs` `customers` `messages`
 

@@ -137,6 +137,16 @@
   ],
   "redirects": [
     {
+      "source": "/premuim",
+      "destination": "/be-seller/premuim",
+      "permanent": false
+    },
+    {
+      "source": "/premuim/:path*",
+      "destination": "/be-seller/premuim/:path*",
+      "permanent": false
+    },
+    {
       "source": "/product-:slug.html",
       "destination": "/product/:slug",
       "permanent": true

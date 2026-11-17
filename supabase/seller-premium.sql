@@ -45,6 +45,7 @@ begin
   select * into st from kt_stores where owner_id = auth.uid() for update;
   if st.id is null then raise exception 'no_store'; end if;
   if st.status <> 'approved' then raise exception 'store_not_approved'; end if;
+  if st.premium_until is not null and st.premium_until > now() then raise exception 'already_premium'; end if;   -- ممنوع إدخال كود والبريميوم شغّال
   select * into c from kt_premium_codes where code = upper(trim(p_code)) for update;
   if c.code is null then raise exception 'invalid_code'; end if;
   if c.used_at is not null then raise exception 'code_used'; end if;

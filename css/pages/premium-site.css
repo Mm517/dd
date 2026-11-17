@@ -1,17 +1,83 @@
 /* =====================================================================
  * css/pages/premium-site.css
- * الوظيفة: صفحة موقع المتجر البريميوم (domain/<slug>): شريط Kitchenly رفيع + الموقع في إطار بملء الشاشة.
+ * الوظيفة: صفحة المتجر البريميوم (domain/<slug>) كصفحة جوه موقع Kitchenly (بدون iframe): قوالب فريش / ليلي / ورقي / جريء بألوان البائع.
+ *   بيتحمّل كمان في معاينة لوحة البائع وجوه shadow DOM لوضع الكود، عشان الشكل واحد. كل القواعد تحت .ps عشان ما تأثرش على باقي الموقع.
  * الترتيب: آخر ملف في صفحة premium-site. الترتيب جزء من الأولوية (cascade).
  * ===================================================================== */
-/* #premium-site #iframe #bar */
-body[data-page="premiumSite"]{margin:0;overflow:hidden}
-body[data-page="premiumSite"] #app{min-height:0}
-.psx{display:flex;flex-direction:column;height:100vh;height:100dvh}
-.psx__bar{display:flex;align-items:center;gap:18px;height:42px;padding:0 16px;background:#14301f;color:#d8e6dc;font-size:.82rem;flex:none}
-.psx__bar a{color:inherit}.psx__bar a:hover{color:#fff}
-.psx__brand{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.04em;color:#fff!important}
-.psx__brand img{width:22px;height:22px;border-radius:6px;object-fit:cover}
-.psx__sp{flex:1}
-.psx__cart b{background:#f2b705;color:#2a2000;border-radius:99px;padding:0 7px;margin-inline-start:4px;font-size:.72rem}
-.psx__f{flex:1;width:100%;border:0;background:#fff;display:block}
-.psx--load .skel{border-radius:0}
+/* #premium-site #template #store-look */
+.ps{--ps-card:#fff;--ps-line:rgba(0,0,0,.1);position:relative;width:100%;background:var(--ps-bg);color:var(--ps-ink);font-family:"Readex Pro",system-ui,Tahoma,sans-serif;line-height:1.7;text-align:start}
+.ps--dark{--ps-card:rgba(255,255,255,.06);--ps-line:rgba(255,255,255,.14)}
+.ps,.ps *,.ps *::before,.ps *::after{box-sizing:border-box}
+.ps img{max-width:100%;display:block}.ps a{color:inherit;text-decoration:none}.ps h1,.ps h2,.ps h3,.ps p{margin:0}
+.ps button,.ps input,.ps select{font:inherit;color:inherit}.ps button{cursor:pointer;border:0;background:none;padding:0}.ps [hidden]{display:none!important}
+/* الشريط العلوي للمتجر */
+.ps-bar{display:flex;align-items:center;gap:14px;padding:12px 6vw;background:var(--ps-bg);border-bottom:1px solid var(--ps-line)}
+.ps-logo{display:flex;align-items:center;gap:10px;font-weight:600;white-space:nowrap}.ps-logo img{width:40px;height:40px;border-radius:12px;object-fit:cover}
+.ps-links{display:flex;gap:18px;font-size:.92rem;margin-inline-start:10px}.ps-links a{opacity:.72}.ps-links a:hover{opacity:1}
+.ps-sp{flex:1}
+.ps-srch{display:flex;align-items:center;background:var(--ps-card);border:1px solid var(--ps-line);border-radius:99px;padding:0 14px;min-width:190px}
+.ps-srch input{border:0;background:transparent;padding:8px 4px;width:100%;outline:0;min-height:0}
+.ps-cart{display:inline-flex;align-items:center;gap:8px;background:var(--ps-brand);color:var(--ps-onb)!important;border-radius:99px;padding:9px 18px;white-space:nowrap}
+.ps-cart b{background:var(--ps-accent);color:var(--ps-ona);border-radius:99px;min-width:20px;height:20px;font-size:.75rem;display:grid;place-items:center;padding:0 5px}
+.ps-btn{display:inline-block;background:var(--ps-brand);color:var(--ps-onb)!important;padding:12px 28px;border-radius:99px;font-weight:500;transition:transform .15s,box-shadow .15s}
+.ps-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -10px var(--ps-brand)}
+/* الهيرو */
+.ps-hero{display:grid;grid-template-columns:1.1fr 1fr;gap:5vw;align-items:center;padding:4vw 6vw 3vw}
+.ps-pill{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--ps-brand) 14%,transparent);color:var(--ps-brand);border-radius:99px;padding:3px 14px;font-size:.82rem;font-weight:500;margin-bottom:14px}
+.ps--dark .ps-pill{color:var(--ps-accent);background:rgba(255,255,255,.08)}
+.ps-hero h1{font-size:clamp(2rem,5.4vw,3.8rem);line-height:1.2;margin-bottom:14px}
+.ps-hero p{max-width:46ch;opacity:.82;margin-bottom:24px}
+.ps-hero__i{position:relative}.ps-hero__i>img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.ps-hero__lg{position:absolute;inset-block-end:-14px;inset-inline-start:18px;width:68px;height:68px;border-radius:18px;background:#fff;border:3px solid var(--ps-bg);overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.2)}.ps-hero__lg img{width:100%;height:100%;object-fit:cover}
+.ps-stats{display:flex;flex-wrap:wrap;gap:12px 30px;margin-top:26px}.ps-stats b{display:block;font-size:1.35rem;line-height:1.2}.ps-stats span{font-size:.8rem;opacity:.7}
+.ps-strip{display:flex;flex-wrap:wrap;gap:8px 30px;justify-content:center;padding:14px 6vw;border-block:1px solid var(--ps-line);font-size:.88rem}.ps-strip a{text-decoration:underline!important;text-underline-offset:3px}
+/* الأقسام والمنتجات */
+.ps-sec{padding:4vw 6vw}.ps-sec h2,.ps-auto h2{font-size:clamp(1.4rem,3vw,2rem);margin-bottom:18px}
+.ps-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}.ps-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ps-chip{border:1px solid var(--ps-line)!important;background:var(--ps-card)!important;border-radius:99px;padding:6px 16px!important;font-size:.88rem}
+.ps-chip[aria-pressed=true]{background:var(--ps-brand)!important;color:var(--ps-onb);border-color:var(--ps-brand)!important}
+.ps-cnt{font-size:.85rem;opacity:.65}
+.ps-sort{border:1px solid var(--ps-line);background:var(--ps-card);border-radius:10px;padding:7px 10px;font-size:.88rem;min-height:0;width:auto}.ps-sort option{color:#222}
+.ps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.ps-none{grid-column:1/-1;opacity:.65;text-align:center;padding:30px 0}
+.ps-demo{background:var(--ps-card);border:1px dashed var(--ps-line);border-radius:12px;padding:10px 14px;font-size:.85rem;margin-bottom:16px}
+.ps-p{position:relative;background:var(--ps-card);border:1px solid var(--ps-line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;transition:transform .18s,box-shadow .18s}
+.ps-p:hover{transform:translateY(-3px);box-shadow:0 16px 30px -18px rgba(0,0,0,.4)}
+.ps-p__i{display:block;aspect-ratio:1;overflow:hidden;background:rgba(127,127,127,.12)}.ps-p__i img{width:100%;height:100%;object-fit:cover;transition:transform .35s}.ps-p:hover .ps-p__i img{transform:scale(1.05)}
+.ps-p__off{position:absolute;top:10px;inset-inline-start:10px;background:var(--ps-accent);color:var(--ps-ona);font-size:.75rem;font-weight:600;border-radius:99px;padding:2px 10px}
+.ps-p__b{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}.ps-p__n{font-weight:500;line-height:1.45}.ps-p__r{font-size:.78rem;color:var(--ps-accent)}.ps-p__r span{color:inherit;opacity:.7}
+.ps-p__pr{display:flex;align-items:baseline;gap:8px;margin-top:auto}.ps-p__pr b{font-size:1.1rem;color:var(--ps-brand)}.ps--dark .ps-p__pr b{color:var(--ps-accent)}.ps-p__pr s{opacity:.5;font-size:.85rem}
+.ps-p__a{border-radius:12px;background:var(--ps-brand)!important;color:var(--ps-onb);padding:10px!important;transition:filter .15s}.ps-p__a:hover:not(:disabled){filter:brightness(1.1)}.ps-p__a:disabled{opacity:.5;cursor:not-allowed}.ps-p__a.is-done{background:var(--ps-accent)!important;color:var(--ps-ona)}
+/* عن المتجر والتواصل */
+.ps-ab{display:grid;grid-template-columns:1.4fr 1fr;gap:4vw;align-items:start}.ps-ab p{max-width:62ch;opacity:.85}
+.ps-ct{background:var(--ps-card);border:1px solid var(--ps-line);border-radius:18px;padding:20px;display:grid;gap:10px}.ps-ct h3{font-size:1.05rem}.ps-ct .ps-btn{text-align:center}
+.ps-wa{position:fixed;bottom:18px;inset-inline-end:18px;z-index:30;background:#25d366;color:#fff!important;border-radius:99px;padding:11px 20px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.ps-foot{padding:28px 6vw 36px;text-align:center;font-size:.85rem;opacity:.7;display:grid;gap:6px;border-top:1px solid var(--ps-line)}.ps-foot a{text-decoration:underline!important;text-underline-offset:3px}
+.ps-auto{padding:2vw 0}
+/* ---------- القوالب ---------- */
+/* فريش */
+.ps--fresh{--ps-card:#fff}.ps--fresh .ps-hero__i>img{border-radius:30px;box-shadow:0 24px 60px -24px rgba(0,0,0,.35)}.ps--fresh .ps-ab{background:rgba(0,0,0,.03)}
+.ps--fresh .ps-hero::before{content:"";position:absolute;inset-inline-end:-6vw;inset-block-start:-30px;width:42vw;height:42vw;max-width:520px;max-height:520px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ps-accent) 30%,transparent),transparent 68%);pointer-events:none}
+.ps--fresh .ps-hero>*{position:relative}
+/* ليلي */
+.ps--night .ps-hero{position:relative;min-height:70vh;grid-template-columns:1fr;text-align:center;justify-items:center;align-content:center;isolation:isolate;padding-block:8vw}
+.ps--night .ps-hero__i{position:absolute;inset:0;z-index:-1}.ps--night .ps-hero__i>img{height:100%;aspect-ratio:auto;filter:brightness(.38)}.ps--night .ps-hero__lg{display:none}
+.ps--night .ps-hero p{margin-inline:auto;opacity:.9}.ps--night .ps-stats{justify-content:center}.ps--night .ps-p{backdrop-filter:blur(6px)}
+.ps--night .ps-bar{background:color-mix(in srgb,var(--ps-bg) 92%,transparent)}
+/* ورقي */
+.ps--paper{--ps-card:transparent;--ps-line:rgba(0,0,0,.16);font-family:Georgia,"Readex Pro",serif}
+.ps--paper .ps-hero{grid-template-columns:1fr}.ps--paper .ps-hero__i{display:none}.ps--paper .ps-hero h1{font-size:clamp(2.4rem,7vw,5.2rem);letter-spacing:-.01em}
+.ps--paper .ps-btn,.ps--paper .ps-cart,.ps--paper .ps-p__a,.ps--paper .ps-chip,.ps--paper .ps-srch{border-radius:2px}
+.ps--paper .ps-grid{grid-template-columns:1fr;gap:0}
+.ps--paper .ps-p{display:grid;grid-template-columns:96px 1fr;border-radius:0;border-width:1px 0 0}.ps--paper .ps-p:hover{transform:none;box-shadow:none}.ps--paper .ps-p:last-child{border-bottom-width:1px}
+.ps--paper .ps-p__i{aspect-ratio:auto;height:96px;margin:10px}.ps--paper .ps-p__b{padding:10px 14px}.ps--paper .ps-p__off{display:none}.ps--paper .ps-p__a{align-self:start;padding:6px 16px!important}.ps--paper .ps-ct{border-radius:0}
+/* جريء */
+.ps--bold{--ps-card:#fff;--ps-line:var(--ps-ink)}
+.ps--bold .ps-bar{background:var(--ps-brand);color:var(--ps-onb);border-color:var(--ps-ink)}.ps--bold .ps-srch{color:var(--ps-ink)}.ps--bold .ps-cart{background:var(--ps-ink);color:#fff!important}
+.ps--bold .ps-hero{background:var(--ps-brand);color:var(--ps-onb);padding-block:6vw;border-bottom:10px solid var(--ps-accent)}
+.ps--bold .ps-hero h1{font-size:clamp(2.6rem,8vw,6rem);line-height:1.05;font-weight:700}.ps--bold .ps-pill{background:rgba(255,255,255,.18);color:inherit}
+.ps--bold .ps-hero .ps-btn{background:var(--ps-accent);color:var(--ps-ona)!important}.ps--bold .ps-hero__i>img{border:6px solid var(--ps-onb);border-radius:0 40px 0 40px}
+.ps--bold .ps-p{border:3px solid var(--ps-ink);border-radius:6px;box-shadow:6px 6px 0 var(--ps-accent)}.ps--bold .ps-p:hover{transform:translate(-2px,-2px);box-shadow:9px 9px 0 var(--ps-accent)}
+.ps--bold .ps-chip{border:2px solid var(--ps-ink)!important}.ps--bold .ps-ct{border:3px solid var(--ps-ink);border-radius:6px}
+@media(max-width:860px){.ps-hero,.ps-ab{grid-template-columns:1fr}.ps-links{display:none}.ps-srch{min-width:0;flex:1}.ps-bar{flex-wrap:wrap}.ps-logo span{max-width:34vw;overflow:hidden;text-overflow:ellipsis}.ps--paper .ps-p{grid-template-columns:84px 1fr}}
+@media(prefers-reduced-motion:reduce){.ps *{transition:none!important}}

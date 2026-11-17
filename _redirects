@@ -1,3 +1,5 @@
+/premuim  /be-seller/premuim  302!
+/premuim/*  /be-seller/premuim/:splat  302!
 /product-:slug.html  /product/:slug  301!
 /admin.html  /admin  301!
 /product/:slug  /product.html  200

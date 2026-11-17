@@ -12,14 +12,15 @@ const { skel, errBox } = NS;   // js/panel/ui.js
 
 /* ===================== #panel-router: الراوتر وهيكل اللوحة ===================== */
 // #panel-router #shell #history-api #navigation
-let CFG = null, CTX = null, shellOn = false;
+let CFG = null, CTX = null, shellOn = false, NAVSIG = '';
+const navOf = ctx => (typeof CFG.nav === 'function' ? CFG.nav(ctx) : CFG.nav);   /* القايمة ممكن تتغيّر حسب حالة المتجر (مثلًا بعد تفعيل البريميوم) */
 const rel = () => { const p = location.pathname.replace(/\/+$/, '') || '/'; return p === CFG.base ? '/' : p.startsWith(CFG.base + '/') ? p.slice(CFG.base.length) : '/'; };
 const canon = r => (CFG.aliases && CFG.aliases[r]) || r;
 function go(href, replace = false) { history[replace ? 'replaceState' : 'pushState'](null, '', href); return render(); }
 const nextUrl = () => { const n = new URLSearchParams(location.search).get('next'); return n && n.startsWith(CFG.base) ? n : CFG.base + CFG.home; };
 
 function shellHtml(ctx) {
-  const items = CFG.nav.map(n => n.group ? `<p class="side__grp">${esc(n.group)}</p>` : `<a data-l href="${CFG.base}${n.path === '/' ? '' : n.path}" data-path="${n.path}" class="${n.sub ? 'sub' : ''}">${n.sub ? '' : ic(n.icon)}<span>${esc(n.label)}</span><b class="cnt" data-cnt="${n.path}" hidden></b></a>`).join('');
+  const items = navOf(ctx).map(n => n.group ? `<p class="side__grp">${esc(n.group)}</p>` : `<a data-l href="${CFG.base}${n.path === '/' ? '' : n.path}" data-path="${n.path}" class="${n.sub ? 'sub' : ''}">${n.sub ? '' : ic(n.icon)}<span>${esc(n.label)}</span><b class="cnt" data-cnt="${n.path}" hidden></b></a>`).join('');
   const nm = ctx.name || ctx.user?.email || '';
   return `<div class="shell"><aside class="side" id="side"><a data-l href="${CFG.base}${CFG.home === '/' ? '' : CFG.home}" class="side__brand"><img src="/assets/img/logo-mark.jpg" alt=""><span>KITCHENLY<small>${esc(CFG.brandSub)}</small></span></a><nav aria-label="القائمة">${items}</nav>
   <div class="side__foot">${CFG.footLinks.map(l => `<a href="${l.href}" ${l.href.startsWith('http') ? '' : 'target="_blank" rel="noopener"'}>${ic(l.icon, 'sm')}<span>${esc(l.label)}</span></a>`).join('')}<button id="signout">${ic('out', 'sm')}<span>تسجيل الخروج</span></button></div></aside>
@@ -29,6 +30,7 @@ function shellHtml(ctx) {
 }
 const applyBadges = ctx => { if (CFG.badges) CFG.badges(ctx).then(b => Object.entries(b || {}).forEach(([k, n]) => { const el = $(`[data-cnt="${k}"]`); if (!el) return; el.textContent = n; el.hidden = !(n > 0); })).catch(() => {}); };
 function ensureShell(ctx) {
+  const sig = navOf(ctx).map(n => n.path || n.group).join('|'); if (shellOn && sig !== NAVSIG) shellOn = false; NAVSIG = sig;   /* القايمة اتغيّرت: نعيد رسم الشل */
   if (!shellOn) {
     $('#root').innerHTML = shellHtml(ctx); shellOn = true;
     const close = () => document.body.classList.remove('nav-open');
@@ -51,7 +53,7 @@ async function render() {
   const ctx = await CFG.guard({ go, sb, nextUrl });
   if (!ctx) { shellOn = false; return; }
   CTX = ctx; ensureShell(ctx);
-  const paths = CFG.nav.filter(n => n.path).map(n => n.path), best = route.nav || paths.filter(p => key === p || (p !== '/' && key.startsWith(p + '/'))).sort((a, b) => b.length - a.length)[0];
+  const paths = navOf(ctx).filter(n => n.path).map(n => n.path), best = route.nav || paths.filter(p => key === p || (p !== '/' && key.startsWith(p + '/'))).sort((a, b) => b.length - a.length)[0];
   $$('.side nav a').forEach(a => { if (a.dataset.path === best) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   $('#ptitle').textContent = route.title; document.title = `${route.title} | ${CFG.docTitle}`;
   const oldV = $('#view'), view = oldV.cloneNode(false); oldV.replaceWith(view); view.innerHTML = skel(220); /* عنصر جديد كل مرة: يمنع تراكم مستمعات الأحداث */
